@@ -22,6 +22,20 @@ end
 
 config :doris, DorisWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+config :doris, :openrouter,
+  api_key: System.get_env("OPENROUTER_API_KEY"),
+  base_url: System.get_env("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+  # explicit cap: without it OpenRouter reserves the model maximum and the key's credit limit rejects it (402)
+  max_tokens: String.to_integer(System.get_env("LLM_MAX_TOKENS", "2048")),
+  temperature: String.to_float(System.get_env("LLM_TEMPERATURE", "0.3")),
+  receive_timeout: 45_000
+
+config :doris, :models,
+  agent: System.get_env("AGENT_MODEL", "openai/gpt-6-luna"),
+  fallback: System.get_env("FALLBACK_MODEL", "google/gemini-3.8-flash"),
+  memory: System.get_env("MEMORY_MODEL", "google/gemini-3.8-flash"),
+  embedding: System.get_env("EMBEDDING_MODEL", "openai/text-embedding-3-small")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

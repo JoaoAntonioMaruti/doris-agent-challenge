@@ -45,4 +45,4 @@ Cada tarefa: teste pertinente em container → log.md com horário real (`date '
 - `Plug.Conn.chunk` exige SSE sem buffering; validar com proxy real em T02.
 
 ## Status
-- T01 concluída. Demais pendentes.
+- T01, T02 concluídas. Demais pendentes.

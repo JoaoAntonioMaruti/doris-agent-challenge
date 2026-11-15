@@ -9,5 +9,6 @@ defmodule DorisWeb.Router do
     pipe_through :api
 
     get "/health", HealthController, :show
+    post "/v1/chat/completions", ChatController, :create
   end
 end
