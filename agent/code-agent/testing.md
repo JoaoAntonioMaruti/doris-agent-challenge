@@ -26,3 +26,8 @@ Todos os comandos rodam em Docker.
 ## T05
 - `agent-test`: 33 tests, 0 failures. `HistoryTest`: posse da conversa (u_ana × u_ana__abc), ordem e isolamento por conversa, janela nunca começa dentro de par tool_call/tool (15 turnos), base64 → placeholder, allowlist só da mesma conversa e só de execuções ok, idempotência por tool_call_id. `ChatControllerTest`: 2º turno manda o 1º ao modelo (`system,user,assistant,user`); outro usuário reutilizando conversation_id recebe erro.
 - Real cenário 5 (`t05-s5-*`, u_ana): "Tem jaqueta jeans?" → search_by_text (7,2 s) → "Não encontrei jaqueta jeans…" (correto: catálogo só tem p07 couro). "Quero provar a jaqueta de couro preta" → garment_creation p07 (id do turno anterior, sem nova busca) → tryon → show TRYON_CARD (18,4 s). Banco: 8 mensagens (user, assistant+tool_calls, tool, assistant ×2) e 4 tool_executions `call_…#n`.
+
+## T06 (frontend real, Claude in Chrome)
+- Stack completa via `docker compose up --build -d` (frontend+proxy, agente, Postgres). Nada instalado no host.
+- Cenário 1 (Ana, nova conversa no frontend): linhas de feedback "Buscando camisa linho branca ✓" e "Gerando seu try-on ✓", texto da Doris, card PRODUCT "Camisa de linho branca · Ateliê Maré · R$ 249,90 · ver produto" e card de Try-on com a imagem. Screenshot: `code-agent/evidence/t06-cenario1-frontend.jpg`. Problema: `**` cru no texto → corrigido no prompt.
+- Cenário 5, turno 1 (nova conversa, após ajuste): "Não encontrei jaqueta jeans no catálogo. A alternativa mais próxima é a jaqueta de couro preta, por R$ 899.00." + card p07, sem markdown.
