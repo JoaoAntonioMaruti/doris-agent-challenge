@@ -57,7 +57,15 @@ defmodule Doris.Agent.Tools do
      %{"garment_types" => %{"type" => "array", "items" => %{"type" => "string"}}}, []}
   ]
 
-  @names Enum.map(@specs, &elem(&1, 0))
+  @dispatch %{
+    "find_products" => &Orchestrators.find_products/2,
+    "recommend_outfit" => &Orchestrators.recommend_outfit/2,
+    "show_products" => &Orchestrators.show_products/2,
+    "try_on" => &Orchestrators.try_on/2,
+    "get_looks" => &Orchestrators.get_looks/2,
+    "show_look" => &Orchestrators.show_look/2,
+    "get_wardrobe" => &Orchestrators.get_wardrobe/2
+  }
 
   def definitions do
     for {name, description, properties, required} <- @specs do
@@ -73,14 +81,13 @@ defmodule Doris.Agent.Tools do
   end
 
   @doc "Runs a tool call. Returns `{result_map, state}`; never raises on bad model input."
-  def run(name, raw_args, state) when name in @names do
-    case decode(raw_args) do
-      {:ok, args} -> apply(Orchestrators, String.to_existing_atom(name), [args, state])
-      :error -> {%{ok: false, error: "argumentos não são JSON válido"}, state}
+  def run(name, raw_args, state) do
+    case {Map.fetch(@dispatch, name), decode(raw_args)} do
+      {{:ok, fun}, {:ok, args}} -> fun.(args, state)
+      {{:ok, _fun}, :error} -> {%{ok: false, error: "argumentos não são JSON válido"}, state}
+      {:error, _} -> {%{ok: false, error: "tool desconhecida: #{name}"}, state}
     end
   end
-
-  def run(name, _args, state), do: {%{ok: false, error: "tool desconhecida: #{name}"}, state}
 
   defp decode(args) when is_map(args), do: {:ok, args}
 

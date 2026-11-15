@@ -278,9 +278,29 @@ defmodule Doris.Agent.Orchestrators do
 
   # ── helpers ─────────────────────────────────────────────────────────────────
 
+  # Every proxy call is reported to the runner (same process) so the turn can persist it
+  # in tool_executions; results there also rebuild the id allowlist in later turns.
   defp call(state, tool, args) do
-    Executor.call(state.conversation_id, tool, args, deadline: state.deadline)
+    started = System.monotonic_time(:millisecond)
+    result = Executor.call(state.conversation_id, tool, args, deadline: state.deadline)
+
+    send(
+      self(),
+      {:doris_tool_execution,
+       %{
+         tool_name: tool,
+         arguments: args,
+         result: execution_result(result),
+         status: if(match?({:ok, _}, result), do: "ok", else: "error"),
+         duration_ms: System.monotonic_time(:millisecond) - started
+       }}
+    )
+
+    result
   end
+
+  defp execution_result({:ok, data}), do: data
+  defp execution_result({:error, error}), do: %{"error" => error}
 
   # Wraps a pipeline with a feedback line (running → done/error).
   defp with_feedback(state, prefix, text, fun) do

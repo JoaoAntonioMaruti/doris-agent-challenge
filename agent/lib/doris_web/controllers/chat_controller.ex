@@ -3,8 +3,8 @@ defmodule DorisWeb.ChatController do
   use DorisWeb, :controller
   require Logger
 
-  alias Doris.{ChatRequest, SSE}
-  alias Doris.Agent.Runner
+  alias Doris.{ChatRequest, History, SSE}
+  alias Doris.Agent.{Runner, State}
 
   def create(conn, params) do
     conn =
@@ -21,7 +21,8 @@ defmodule DorisWeb.ChatController do
     # Whatever happens, the stream ends with exactly one terminal event and [DONE].
     try do
       with {:ok, req} <- ChatRequest.parse(params),
-           {:ok, _turn} <- Runner.run(req, emit) do
+           :ok <- open_conversation(req),
+           :ok <- run_turn(req, emit) do
         emit.(SSE.finish())
       else
         {:error, message} -> emit.(SSE.error(message))
@@ -35,6 +36,30 @@ defmodule DorisWeb.ChatController do
     end
 
     Process.delete(:doris_sse_conn)
+  end
+
+  defp open_conversation(req) do
+    case History.open(req.user_id, req.conversation_id, req.profile) do
+      :ok -> :ok
+      {:error, :conversation_owned} -> {:error, "esta conversa pertence a outro usuário"}
+    end
+  end
+
+  defp run_turn(req, emit) do
+    state = req |> State.new(emit) |> History.allowlist(req.conversation_id)
+    history = History.context(req.conversation_id)
+
+    case Runner.run(req, emit, state: state, history: history) do
+      {:ok, %{messages: messages, state: state}} ->
+        {:ok, :ok} = History.save_turn(req.conversation_id, messages, state.executions)
+        :ok
+
+      {:error, message} ->
+        {:ok, :ok} =
+          History.save_turn(req.conversation_id, [%{role: "user", content: req.content}], [])
+
+        {:error, message}
+    end
   end
 
   defp write_event(event) do

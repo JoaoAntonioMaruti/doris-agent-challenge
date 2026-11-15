@@ -23,7 +23,8 @@ defmodule Doris.Agent.State do
     avoid_colors: [],
     feedback_seq: 0,
     shown: MapSet.new(),
-    extra_messages: []
+    extra_messages: [],
+    executions: []
   ]
 
   def new(%ChatRequest{} = req, emit, opts \\ []) do

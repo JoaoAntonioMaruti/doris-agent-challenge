@@ -81,4 +81,34 @@ defmodule DorisWeb.ChatControllerTest do
     assert [%{"error" => _}, :done] =
              conn |> post("/v1/chat/completions", %{"messages" => []}) |> events()
   end
+
+  test "a second message in the same conversation sends the previous turn to the model", %{
+    conn: conn
+  } do
+    {:ok, bodies} = Agent.start_link(fn -> [] end)
+
+    Req.Test.stub(Doris.LLM.OpenRouter, fn req ->
+      {:ok, body, _} = Plug.Conn.read_body(req)
+      Agent.update(bodies, &(&1 ++ [Jason.decode!(body)]))
+      Req.Test.json(req, completion("resposta"))
+    end)
+
+    post(conn, "/v1/chat/completions", @body)
+    second = put_in(@body, ["messages"], [%{"role" => "user", "content" => "e agora?"}])
+    post(build_conn(), "/v1/chat/completions", second)
+
+    [_, %{"messages" => messages}] = Agent.get(bodies, & &1)
+    assert Enum.map(messages, & &1["role"]) == ["system", "user", "assistant", "user"]
+    assert Enum.at(messages, 2)["content"] == "resposta"
+  end
+
+  test "another user reusing the conversation id gets an error and no history", %{conn: conn} do
+    Req.Test.stub(Doris.LLM.OpenRouter, &Req.Test.json(&1, completion("segredo da Ana")))
+    post(conn, "/v1/chat/completions", @body)
+
+    intruder = Map.put(@body, "user", "u_bruno__x")
+    events = build_conn() |> post("/v1/chat/completions", intruder) |> events()
+    assert [%{"error" => %{"message" => message}}, :done] = events
+    assert message =~ "outro usuário"
+  end
 end

@@ -29,3 +29,12 @@
 - Visão para looks: resultados de tool são só texto, então `get_looks` anexa as imagens dos 2 looks mais recentes numa mensagem `user` logo após os tool results.
 - Limites: 6 iterações, deadline interno de 80 s (`turn_budget_ms`), timeout do LLM limitado ao tempo restante, e chamada idêntica repetida no turno não é reexecutada. Ao estourar, o turno termina com texto amigável (nunca fica sem resposta).
 - Erro do LLM na 1ª iteração → evento `error`; depois de tools já executadas → texto de fallback (os cards já mostrados ficam).
+
+## T05
+- Tabelas `users`, `conversations`, `messages`, `tool_executions` (migration única), com uniques `(conversation_id, sequence)` e parcial `(conversation_id, tool_call_id) WHERE tool_call_id IS NOT NULL`, além do índice `(user_id, updated_at)`. `user_preferences` fica para a T07.
+- `user_id` = `request.user` integral. O dono da conversa é quem a criou (`INSERT … ON CONFLICT DO NOTHING` + leitura). Outro usuário com o mesmo `conversation_id` recebe erro e nenhum histórico.
+- `messages.content` guarda a mensagem no formato do modelo (inclui `tool_calls`). O contexto pega as últimas 40 e descarta o início até a primeira mensagem `user`, então nunca começa no meio de um par tool_call/tool.
+- Imagens: data URI base64 vira placeholder no banco. A mensagem corrente vai inteira ao modelo. URLs públicas (looks) viram referência textual.
+- `save_turn` é uma transação com `SELECT … FOR UPDATE` na conversa (serializa turnos concorrentes). Execuções com `tool_call_id` repetido são ignoradas (idempotência).
+- Registro de execuções: os orquestradores mandam `{:doris_tool_execution, …}` para o próprio processo e o Runner coleta depois de cada tool call, com id `<tool_call_id>#n`. Evita threading de estado em cada pipeline, e o canal é local ao processo do turno.
+- A allowlist de IDs da conversa é reconstruída a partir de `tool_executions` com status ok (search, garment_creation, wardrobe, tryon, looks).

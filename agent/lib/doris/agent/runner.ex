@@ -85,9 +85,29 @@ defmodule Doris.Agent.Runner do
              }, state},
           else: Tools.run(name, args, state)
 
+      state = collect_executions(state, id)
+
       message = %{role: "tool", tool_call_id: id, content: Jason.encode!(result)}
       {acc ++ [message], state, MapSet.put(seen, key)}
     end)
+  end
+
+  # Proxy calls made by the orchestrators arrive as messages to this process; each gets
+  # an id derived from the model's tool_call_id (unique per conversation).
+  defp collect_executions(state, tool_call_id) do
+    executions =
+      Stream.repeatedly(fn ->
+        receive do
+          {:doris_tool_execution, e} -> e
+        after
+          0 -> nil
+        end
+      end)
+      |> Enum.take_while(& &1)
+      |> Enum.with_index(1)
+      |> Enum.map(fn {e, n} -> Map.put(e, :tool_call_id, "#{tool_call_id}##{n}") end)
+
+    %{state | executions: state.executions ++ executions}
   end
 
   defp assistant_message(message, calls) do
