@@ -20,3 +20,12 @@
 - `Doris.Tools.Registry`: contratos das 7 tools do proxy como dados (schema JSON + validador simples, sem lib de JSON Schema). `tryon` aceita no máximo 1 garment já na validação; `avatar_pose` só `NORMAL`; `show_artifact.type` só `PRODUCT|GARMENT|TRYON_CARD`.
 - `Doris.Tools.Executor.call(conversation_id, tool, args)`: argumento inválido nunca chega ao proxy (`invalid_arguments`); `conversation_id` sempre injetado; retry só para `retryable: true` (até 2 tentativas, backoff linear, não tenta se faltar <2 s para o deadline); 5xx sem envelope e erro de transporte contam como retryable.
 - Estas são as tools *de baixo nível*. O LLM verá tools de alto nível (T04) que as orquestram.
+
+## T04
+- O LLM vê 7 tools de alto nível (`Doris.Agent.Tools`): `find_products`, `recommend_outfit`, `show_products`, `try_on`, `get_looks`, `show_look`, `get_wardrobe`. Cada uma é um pipeline determinístico em `Doris.Agent.Orchestrators` sobre as tools do proxy. `run_tryon_pipeline` do plano é o `try_on`: garment_creation → tryon (sempre 1 garment) → show_artifact(TRYON_CARD), com fallback para show_artifact(PRODUCT).
+- Allowlist em `Doris.Agent.State`: produtos, garments, try-ons e looks só entram quando retornados pelo proxy. IDs desconhecidos voltam como erro para o modelo **sem chamar o proxy**.
+- Restrições no código: teto de preço e cores evitadas filtram a busca (`Doris.Agent.Filters`, com variações de gênero/número e sem acento) e são **rechecados** no `show_products`/`try_on`. Dentro do turno as restrições só apertam.
+- Prompt injection: descrições do catálogo vão truncadas (240 chars) no campo `untrusted_store_description`, e o system prompt manda tratá-las como dado.
+- Visão para looks: resultados de tool são só texto, então `get_looks` anexa as imagens dos 2 looks mais recentes numa mensagem `user` logo após os tool results.
+- Limites: 6 iterações, deadline interno de 80 s (`turn_budget_ms`), timeout do LLM limitado ao tempo restante, e chamada idêntica repetida no turno não é reexecutada. Ao estourar, o turno termina com texto amigável (nunca fica sem resposta).
+- Erro do LLM na 1ª iteração → evento `error`; depois de tools já executadas → texto de fallback (os cards já mostrados ficam).

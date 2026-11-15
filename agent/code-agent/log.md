@@ -8,8 +8,8 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | T01 | Docker e contrato mínimo | Concluída | 2026-11-15 20:31:12 -03:00 | 2026-11-15 20:37:18 -03:00 | `agent-test`: 3 tests, 0 failures; `GET http://agent:8000/health` → 200 `{"status":"ok"}` a partir do container do proxy | 2c707e1 |
 | T02 | OpenRouter + resposta SSE | Concluída | 2026-11-15 20:37:32 -03:00 | 2026-11-15 20:40:06 -03:00 | 10 tests, 0 failures; `POST /chat` (proxy) "Oi" → texto real do gpt-6-luna + `done`; SSE bruto: 1 texto, 1 `finish_reason: stop`, `[DONE]` ×1 | 575bbf3 |
-| T03 | Tools HTTP | Concluída | 2026-11-15 20:40:10 -03:00 | 2026-11-15 20:41:51 -03:00 | 15 tests, 0 failures; 7 tools chamadas no proxy real (search→p01 R$249.9, garment, tryon, avatar, looks, wardrobe, show_artifact `ok`; `not_found` e `conversation_not_found` com retryable=false) | — |
-| T04 | Agent Loop e artifacts | Pendente | — | — | — | — |
+| T03 | Tools HTTP | Concluída | 2026-11-15 20:40:10 -03:00 | 2026-11-15 20:41:51 -03:00 | 15 tests, 0 failures; 7 tools chamadas no proxy real (search→p01 R$249.9, garment, tryon, avatar, looks, wardrobe, show_artifact `ok`; `not_found` e `conversation_not_found` com retryable=false) | 2c491c4 |
+| T04 | Agent Loop e artifacts | Concluída | 2026-11-15 20:42:15 -03:00 | 2026-11-15 20:45:59 -03:00 | 26 tests, 0 failures; real cenário 1 (`t04-s1-20061`): search_by_text → show_artifact PRODUCT p01 → garment_creation → tryon (1 garment) → show_artifact TRYON_CARD, 20,5 s, p02 R$459 filtrado; "capital da França" sem tools, 1,3 s | — |
 | T05 | Histórico persistente | Pendente | — | — | — | — |
 | T06 | Teste integrado do fluxo principal | Pendente | — | — | — | — |
 | T07 | Memória estruturada v1 com feature flag | Pendente | — | — | — | — |

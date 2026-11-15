@@ -21,7 +21,7 @@ defmodule DorisWeb.ChatController do
     # Whatever happens, the stream ends with exactly one terminal event and [DONE].
     try do
       with {:ok, req} <- ChatRequest.parse(params),
-           :ok <- Runner.run(req, emit) do
+           {:ok, _turn} <- Runner.run(req, emit) do
         emit.(SSE.finish())
       else
         {:error, message} -> emit.(SSE.error(message))

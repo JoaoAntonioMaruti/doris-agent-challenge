@@ -43,7 +43,14 @@ defmodule Doris.LLM.OpenRouter do
       |> put_optional(:tools, Keyword.get(opts, :tools))
       |> put_optional(:response_format, Keyword.get(opts, :response_format))
 
-    case Req.post(req(), url: "/chat/completions", json: body) do
+    receive_timeout =
+      min(Keyword.get(opts, :receive_timeout, config(:receive_timeout)), config(:receive_timeout))
+
+    case Req.post(req(),
+           url: "/chat/completions",
+           json: body,
+           receive_timeout: max(receive_timeout, 1_000)
+         ) do
       {:ok, %{status: 200, body: %{"choices" => [%{"message" => message} | _]}}} ->
         {:ok, message}
 
