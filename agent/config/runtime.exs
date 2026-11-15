@@ -30,6 +30,8 @@ config :doris, :openrouter,
   temperature: String.to_float(System.get_env("LLM_TEMPERATURE", "0.3")),
   receive_timeout: 45_000
 
+config :doris, :proxy_url, System.get_env("PROXY_URL", "http://proxy:3000")
+
 config :doris, :models,
   agent: System.get_env("AGENT_MODEL", "openai/gpt-6-luna"),
   fallback: System.get_env("FALLBACK_MODEL", "google/gemini-3.8-flash"),

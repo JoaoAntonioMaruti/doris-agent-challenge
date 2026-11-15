@@ -15,3 +15,8 @@
 - `max_tokens` sempre explícito (ver ocorrência 402 no log).
 - Conteúdo da mensagem do usuário é repassado ao modelo exatamente como chegou (partes `text` + `image_url`).
 - Encerramento: `try/rescue/after` no controller garante um evento terminal (`finish_reason` ou `error`) e exatamente um `[DONE]`. Se o cliente desconectar, o chunk falha silenciosamente e o turno termina (para a persistência completar).
+
+## T03
+- `Doris.Tools.Registry`: contratos das 7 tools do proxy como dados (schema JSON + validador simples, sem lib de JSON Schema). `tryon` aceita no máximo 1 garment já na validação; `avatar_pose` só `NORMAL`; `show_artifact.type` só `PRODUCT|GARMENT|TRYON_CARD`.
+- `Doris.Tools.Executor.call(conversation_id, tool, args)`: argumento inválido nunca chega ao proxy (`invalid_arguments`); `conversation_id` sempre injetado; retry só para `retryable: true` (até 2 tentativas, backoff linear, não tenta se faltar <2 s para o deadline); 5xx sem envelope e erro de transporte contam como retryable.
+- Estas são as tools *de baixo nível*. O LLM verá tools de alto nível (T04) que as orquestram.

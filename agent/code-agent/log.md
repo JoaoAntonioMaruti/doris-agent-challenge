@@ -7,8 +7,8 @@
 | ID | Tarefa | Estado | Início real | Conclusão real | Evidência | Commit SHA |
 | --- | --- | --- | --- | --- | --- | --- |
 | T01 | Docker e contrato mínimo | Concluída | 2026-11-15 20:31:12 -03:00 | 2026-11-15 20:37:18 -03:00 | `agent-test`: 3 tests, 0 failures; `GET http://agent:8000/health` → 200 `{"status":"ok"}` a partir do container do proxy | 2c707e1 |
-| T02 | OpenRouter + resposta SSE | Concluída | 2026-11-15 20:37:32 -03:00 | 2026-11-15 20:40:06 -03:00 | 10 tests, 0 failures; `POST /chat` (proxy) "Oi" → texto real do gpt-6-luna + `done`; SSE bruto: 1 texto, 1 `finish_reason: stop`, `[DONE]` ×1 | — |
-| T03 | Tools HTTP | Pendente | — | — | — | — |
+| T02 | OpenRouter + resposta SSE | Concluída | 2026-11-15 20:37:32 -03:00 | 2026-11-15 20:40:06 -03:00 | 10 tests, 0 failures; `POST /chat` (proxy) "Oi" → texto real do gpt-6-luna + `done`; SSE bruto: 1 texto, 1 `finish_reason: stop`, `[DONE]` ×1 | 575bbf3 |
+| T03 | Tools HTTP | Concluída | 2026-11-15 20:40:10 -03:00 | 2026-11-15 20:41:51 -03:00 | 15 tests, 0 failures; 7 tools chamadas no proxy real (search→p01 R$249.9, garment, tryon, avatar, looks, wardrobe, show_artifact `ok`; `not_found` e `conversation_not_found` com retryable=false) | — |
 | T04 | Agent Loop e artifacts | Pendente | — | — | — | — |
 | T05 | Histórico persistente | Pendente | — | — | — | — |
 | T06 | Teste integrado do fluxo principal | Pendente | — | — | — | — |

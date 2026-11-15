@@ -31,3 +31,5 @@ config :phoenix,
   sort_verified_routes_query_params: true
 
 config :doris, :openrouter_req_options, plug: {Req.Test, Doris.LLM.OpenRouter}
+config :doris, :proxy_req_options, plug: {Req.Test, Doris.Tools.Executor}
+config :doris, :tool_backoff_ms, 0
