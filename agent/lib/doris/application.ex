@@ -12,6 +12,7 @@ defmodule Doris.Application do
       Doris.Repo,
       {DNSCluster, query: Application.get_env(:doris, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Doris.PubSub},
+      {Task.Supervisor, name: Doris.TaskSupervisor},
       # Start a worker by calling: Doris.Worker.start_link(arg)
       # {Doris.Worker, arg},
       # Start to serve requests, typically the last entry

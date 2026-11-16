@@ -38,3 +38,11 @@
 - `save_turn` é uma transação com `SELECT … FOR UPDATE` na conversa (serializa turnos concorrentes). Execuções com `tool_call_id` repetido são ignoradas (idempotência).
 - Registro de execuções: os orquestradores mandam `{:doris_tool_execution, …}` para o próprio processo e o Runner coleta depois de cada tool call, com id `<tool_call_id>#n`. Evita threading de estado em cada pipeline, e o canal é local ao processo do turno.
 - A allowlist de IDs da conversa é reconstruída a partir de `tool_executions` com status ok (search, garment_creation, wardrobe, tryon, looks).
+
+## T07
+- `Doris.Memory` (fachada) escolhe a estratégia por `MEMORY_MODE` (`v1` padrão, `v2`), validado em `runtime.exs` (valor inválido derruba o boot). `Doris.Memory.Semantic` ainda delega para v1 (T09).
+- v1 = `user_preferences` (size, disliked_colors, preferred_styles, budget_max, notes, version), chave = `user_id` completo.
+- Extração: o LLM só propõe um *change set* em JSON a partir da **mensagem do usuário** (`add_*`/`remove_*`, null = não mencionado). Validação de tipo/tamanho no código, merge no código (`Preferences.merge/2`): correção explícita vence, ausência preserva, remoção só explícita. Persistência com lock otimista (`version`), 2 tentativas.
+- Momento: a extração roda em `Task.Supervisor.async_nolink` **em paralelo** ao loop do agente e é aguardada (até 15 s) antes do `[DONE]`. Uma conversa nova, aberta depois que o turno termina, sempre vê o dado, sem race silenciosa e quase sem latência extra. Falha/timeout é logado e o perfil anterior fica intacto.
+- Uso: preferências entram no system prompt. `disliked_colors` também entram em `State.avoid_colors`, ou seja, filtro rígido em busca/show/try-on. `budget_max` é só dica no prompt (o teto rígido vem do pedido do turno).
+- **Desvio do plano:** `MEMORY_MODEL` padrão = `openai/gpt-6-luna`, não `google/gemini-3.8-flash`. Medido em 2026-11-15: gemini truncou o JSON em ~50% das chamadas; luna 8/8. Continua configurável.

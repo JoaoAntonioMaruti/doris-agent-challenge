@@ -31,3 +31,10 @@ Todos os comandos rodam em Docker.
 - Stack completa via `docker compose up --build -d` (frontend+proxy, agente, Postgres). Nada instalado no host.
 - Cenário 1 (Ana, nova conversa no frontend): linhas de feedback "Buscando camisa linho branca ✓" e "Gerando seu try-on ✓", texto da Doris, card PRODUCT "Camisa de linho branca · Ateliê Maré · R$ 249,90 · ver produto" e card de Try-on com a imagem. Screenshot: `code-agent/evidence/t06-cenario1-frontend.jpg`. Problema: `**` cru no texto → corrigido no prompt.
 - Cenário 5, turno 1 (nova conversa, após ajuste): "Não encontrei jaqueta jeans no catálogo. A alternativa mais próxima é a jaqueta de couro preta, por R$ 899.00." + card p07, sem markdown.
+
+## T07
+- `agent-test`: 40 tests, 0 failures. `StructuredTest`: salva/carrega (prompt + cor rígida), sufixos isolados, merge preserva fatos e aplica correção explícita (version 2), nada a extrair = sem escrita, JSON inválido = erro sem mudança, parse descarta tipos errados e corta notas em 300. `ChatControllerTest`: preferências da conversa A aparecem no system prompt da conversa B do mesmo usuário e não no de `u_ana__def`.
+- Confiabilidade da extração (8 chamadas reais cada): gemini-3.8-flash ~50% JSON truncado; gpt-6-luna 8/8, 2,2–3,1 s.
+- Real cenário 4 (`u_ana__t071873`): conversa A "Odeio amarelo, visto M e curto estilo minimalista." → `user_preferences` M/{amarelo}/{minimalista} v1. Conversa B "Me sugere algo pra um jantar" → vestido midi preto minimalista (p05) + try-on. Conversa nova "Que tamanho eu visto e qual cor eu evito?" → "Você veste tamanho M e evita amarelo."; mesma pergunta com `u_ana__x071873` → "Ainda não tenho informações…".
+- Filtro rígido: "Me mostra vestidos midi" (mesmo usuário) → proxy retornou `[p04 (amarelo), p05, p27, …]`; o modelo recebeu só p05, p27…; cards p05 e p27.
+- `docker compose run -e MEMORY_MODE=v3 agent …` → `MEMORY_MODE must be v1 or v2, got: "v3"`.

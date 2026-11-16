@@ -34,11 +34,8 @@ defmodule DorisWeb.ChatControllerTest do
   test "streams the model text, finish_reason and exactly one [DONE]; image reaches the model", %{
     conn: conn
   } do
-    Req.Test.stub(Doris.LLM.OpenRouter, fn req ->
-      {:ok, body, _} = Plug.Conn.read_body(req)
-
-      %{"messages" => [_system, %{"content" => content}], "max_tokens" => max} =
-        Jason.decode!(body)
+    Doris.LLMStub.stub(fn req, body ->
+      %{"messages" => [_system, %{"content" => content}], "max_tokens" => max} = body
 
       assert %{"type" => "image_url", "image_url" => %{"url" => @image}} in content
       assert is_integer(max)
@@ -55,10 +52,8 @@ defmodule DorisWeb.ChatControllerTest do
   end
 
   test "falls back to the second model when the first fails with 5xx", %{conn: conn} do
-    Req.Test.stub(Doris.LLM.OpenRouter, fn req ->
-      {:ok, body, _} = Plug.Conn.read_body(req)
-
-      case Jason.decode!(body)["model"] do
+    Doris.LLMStub.stub(fn req, body ->
+      case body["model"] do
         "openai/gpt-6-luna" -> req |> Plug.Conn.put_status(503) |> Req.Test.json(%{})
         "google/gemini-3.8-flash" -> Req.Test.json(req, completion("fallback"))
       end
@@ -69,7 +64,7 @@ defmodule DorisWeb.ChatControllerTest do
   end
 
   test "a model error ends the turn with an error event and [DONE]", %{conn: conn} do
-    Req.Test.stub(Doris.LLM.OpenRouter, fn req ->
+    Doris.LLMStub.stub(fn req, _body ->
       req |> Plug.Conn.put_status(400) |> Req.Test.json(%{"error" => "bad"})
     end)
 
@@ -87,9 +82,8 @@ defmodule DorisWeb.ChatControllerTest do
   } do
     {:ok, bodies} = Agent.start_link(fn -> [] end)
 
-    Req.Test.stub(Doris.LLM.OpenRouter, fn req ->
-      {:ok, body, _} = Plug.Conn.read_body(req)
-      Agent.update(bodies, &(&1 ++ [Jason.decode!(body)]))
+    Doris.LLMStub.stub(fn req, body ->
+      Agent.update(bodies, &(&1 ++ [body]))
       Req.Test.json(req, completion("resposta"))
     end)
 
@@ -103,12 +97,49 @@ defmodule DorisWeb.ChatControllerTest do
   end
 
   test "another user reusing the conversation id gets an error and no history", %{conn: conn} do
-    Req.Test.stub(Doris.LLM.OpenRouter, &Req.Test.json(&1, completion("segredo da Ana")))
+    Doris.LLMStub.stub(fn req, _ -> Req.Test.json(req, completion("segredo da Ana")) end)
     post(conn, "/v1/chat/completions", @body)
 
     intruder = Map.put(@body, "user", "u_bruno__x")
     events = build_conn() |> post("/v1/chat/completions", intruder) |> events()
     assert [%{"error" => %{"message" => message}}, :done] = events
     assert message =~ "outro usuário"
+  end
+
+  test "preferences from one conversation reach a new conversation of the same user only", %{
+    conn: conn
+  } do
+    {:ok, prompts} = Agent.start_link(fn -> [] end)
+
+    stub = fn req, body ->
+      Agent.update(prompts, &(&1 ++ [{body["user"], hd(body["messages"])["content"]}]))
+      Req.Test.json(req, completion("ok"))
+    end
+
+    Doris.LLMStub.stub(
+      stub,
+      ~s({"size":"M","add_disliked_colors":["amarelo"],"add_styles":["minimalista"]})
+    )
+
+    say = fn user, conv, text ->
+      body =
+        @body
+        |> Map.put("user", user)
+        |> put_in(["metadata", "conversation_id"], conv)
+        |> put_in(["messages"], [%{"role" => "user", "content" => text}])
+
+      post(build_conn(), "/v1/chat/completions", body)
+    end
+
+    say.("u_ana__abc", "conv-a", "Odeio amarelo, visto M e curto estilo minimalista.")
+    Doris.LLMStub.stub(stub)
+    say.("u_ana__abc", "conv-b", "Me sugere algo pra um jantar")
+    say.("u_ana__def", "conv-c", "Me sugere algo pra um jantar")
+
+    systems = Agent.get(prompts, & &1) |> Enum.map(&elem(&1, 1))
+    [_first, second, third] = systems
+    assert second =~ "Tamanho: M" and second =~ "amarelo" and second =~ "minimalista"
+    refute third =~ "amarelo"
+    _ = conn
   end
 end

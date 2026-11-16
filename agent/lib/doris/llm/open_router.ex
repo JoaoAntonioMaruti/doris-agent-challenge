@@ -11,7 +11,8 @@ defmodule Doris.LLM.OpenRouter do
   Returns `{:ok, message}` where `message` is the assistant message map from the API
   (`"content"` and optionally `"tool_calls"`), or `{:error, reason}`.
 
-  Options: `:tools`, `:model` (`:agent` | `:memory` | a model id), `:max_tokens`, `:response_format`.
+  Options: `:tools`, `:model` (`:agent` | `:memory` | a model id), `:max_tokens`, `:response_format`,
+  `:reasoning` (OpenRouter reasoning config), `:receive_timeout`.
   """
   def chat(messages, opts \\ []) do
     models = candidate_models(Keyword.get(opts, :model, :agent))
@@ -42,6 +43,7 @@ defmodule Doris.LLM.OpenRouter do
       }
       |> put_optional(:tools, Keyword.get(opts, :tools))
       |> put_optional(:response_format, Keyword.get(opts, :response_format))
+      |> put_optional(:reasoning, Keyword.get(opts, :reasoning))
 
     receive_timeout =
       min(Keyword.get(opts, :receive_timeout, config(:receive_timeout)), config(:receive_timeout))

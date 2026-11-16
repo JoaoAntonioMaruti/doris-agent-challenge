@@ -3,7 +3,7 @@ defmodule DorisWeb.ChatController do
   use DorisWeb, :controller
   require Logger
 
-  alias Doris.{ChatRequest, History, SSE}
+  alias Doris.{ChatRequest, History, Memory, SSE}
   alias Doris.Agent.{Runner, State}
 
   def create(conn, params) do
@@ -46,10 +46,27 @@ defmodule DorisWeb.ChatController do
   end
 
   defp run_turn(req, emit) do
-    state = req |> State.new(emit) |> History.allowlist(req.conversation_id)
-    history = History.context(req.conversation_id)
+    text = ChatRequest.text(req)
+    memory = Memory.load(req.user_id, text)
 
-    case Runner.run(req, emit, state: state, history: history) do
+    # Preferences are extracted from the user's message in parallel with the agent loop
+    # and awaited before the turn ends, so a new conversation always sees them.
+    extraction =
+      Task.Supervisor.async_nolink(Doris.TaskSupervisor, fn ->
+        Memory.update(req.user_id, %{user_text: text})
+      end)
+
+    state =
+      req
+      |> State.new(emit)
+      |> Map.put(:avoid_colors, memory.avoid_colors)
+      |> History.allowlist(req.conversation_id)
+
+    history = History.context(req.conversation_id)
+    result = Runner.run(req, emit, state: state, history: history, memory: memory.prompt)
+    await_memory(extraction, req.user_id)
+
+    case result do
       {:ok, %{messages: messages, state: state}} ->
         {:ok, :ok} = History.save_turn(req.conversation_id, messages, state.executions)
         :ok
@@ -59,6 +76,23 @@ defmodule DorisWeb.ChatController do
           History.save_turn(req.conversation_id, [%{role: "user", content: req.content}], [])
 
         {:error, message}
+    end
+  end
+
+  # A memory failure never breaks the chat; it is logged and the previous profile stays.
+  defp await_memory(task, user_id) do
+    case Task.yield(task, 15_000) || Task.shutdown(task) do
+      {:ok, {:error, reason}} ->
+        Logger.warning("memory update failed for #{user_id}: #{inspect(reason)}")
+
+      {:ok, _} ->
+        :ok
+
+      nil ->
+        Logger.warning("memory update timed out for #{user_id}")
+
+      {:exit, reason} ->
+        Logger.warning("memory update crashed for #{user_id}: #{inspect(reason)}")
     end
   end
 
