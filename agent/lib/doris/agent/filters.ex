@@ -4,9 +4,21 @@ defmodule Doris.Agent.Filters do
   it ignores price and colour, so the agent must never trust it for constraints.
   """
 
+  # Shades named differently from the base colour (search results carry no tags).
+  @shades %{
+    "amarelo" => ["mostarda", "ocre", "canario"],
+    "vermelho" => ["bordo", "vinho", "carmim"],
+    "azul" => ["marinho", "anil"],
+    "verde" => ["oliva", "salvia", "musgo"],
+    "rosa" => ["pink", "fucsia"],
+    "marrom" => ["caramelo", "chocolate"],
+    "branco" => ["off-white", "offwhite"],
+    "laranja" => ["coral", "terracota"]
+  }
+
   @doc "Keeps products within `max_price` (nil = no ceiling) and without avoided colours."
   def apply(products, max_price, avoid_colors) do
-    patterns = Enum.map(avoid_colors, &color_pattern/1)
+    patterns = Enum.flat_map(avoid_colors, &color_patterns/1)
 
     Enum.filter(products, fn p ->
       within_budget?(p, max_price) and not Enum.any?(patterns, &Regex.match?(&1, haystack(p)))
@@ -17,7 +29,17 @@ defmodule Doris.Agent.Filters do
   def within_budget?(%{"price" => price}, max) when is_number(price), do: price <= max
   def within_budget?(_product, _max), do: false
 
-  def mentions_color?(product, color), do: Regex.match?(color_pattern(color), haystack(product))
+  def mentions_color?(product, color),
+    do: Enum.any?(color_patterns(color), &Regex.match?(&1, haystack(product)))
+
+  defp color_patterns(color) do
+    base = normalize(color) |> String.trim()
+
+    canonical =
+      if String.ends_with?(base, "a"), do: String.slice(base, 0..-2//1) <> "o", else: base
+
+    Enum.map([base | Map.get(@shades, canonical, [])], &color_pattern/1)
+  end
 
   defp haystack(p), do: normalize("#{p["name"]} #{p["description"]}")
 

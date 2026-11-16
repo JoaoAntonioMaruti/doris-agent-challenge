@@ -1,0 +1,765 @@
+{
+  "started_at": "2026-11-16T00:02:58.026934Z",
+  "target": "http://proxy:3000",
+  "summary": {
+    "total": 6,
+    "failed": 0,
+    "turns": 11,
+    "passed": 6,
+    "p50_ms": 8932,
+    "p95_ms": 42187
+  },
+  "memory_mode": "v1 (padrão do agente)",
+  "model": "openai/gpt-6-luna (padrão do agente)",
+  "suite": "scenarios",
+  "finished_at": "2026-11-16T00:05:43.741745Z",
+  "scenarios": [
+    {
+      "id": "s1_camisa_linho",
+      "status": "passed",
+      "title": "Camisa de linho branca até R$300",
+      "turns": [
+        {
+          "message": "Me acha uma camisa de linho branca até R$300",
+          "user": "u_ana",
+          "text": "Encontrei a Camisa de linho branca, do Ateliê Maré, por R$249,90. Já mostrei a peça e você pode ver como ela fica em você no provador virtual.",
+          "errors": [],
+          "conversation_id": "eval-s1_camisa_linho-a-1794787378",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 12,
+                "query": "camisa linho branca"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p01"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "category": null,
+                "search_item_id": "p01",
+                "type": null
+              },
+              "tool": "garment_creation",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "avatar_pose": "NORMAL",
+                "garment_ids": [
+                  "0191a7e3-a314-5e1c-a9c1-a60dce7f2d37"
+                ]
+              },
+              "tool": "tryon",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "cd3aac42-2442-5301-a583-4b973bc09110"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 24267,
+          "artifacts": [
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p01.jpg",
+              "item_id": "p01",
+              "kind": "PRODUCT",
+              "name": "Camisa de linho branca",
+              "price": 249.9,
+              "store": "Ateliê Maré",
+              "tags": [
+                "camisa",
+                "linho",
+                "branca",
+                "branco",
+                "verao",
+                "praia",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p01"
+            },
+            {
+              "garment_ids": [
+                "0191a7e3-a314-5e1c-a9c1-a60dce7f2d37"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_ana/p01.jpg",
+              "item_ids": [
+                "p01"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "branca",
+                "branco",
+                "camisa",
+                "linho",
+                "praia",
+                "unissex",
+                "verao"
+              ],
+              "tryon_id": "cd3aac42-2442-5301-a583-4b973bc09110"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done",
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 24186
+        }
+      ],
+      "failures": [],
+      "latency_ms": 24267
+    },
+    {
+      "id": "s2_casamento_praia",
+      "status": "passed",
+      "title": "Casamento na praia",
+      "turns": [
+        {
+          "message": "Tenho um casamento na praia sábado, o que eu visto?",
+          "user": "u_bruno",
+          "text": "Para casamento na praia, eu iria de camisa de linho branca com calça de alfaiataria bege; o blazer de linho off-white pode dar um toque mais arrumado. A camisa custa R$ 249,90, a calça R$ 279 e o blazer R$ 520; não encontrei sapatos adequados na busca. Já deixei a camisa no try-on.",
+          "errors": [],
+          "conversation_id": "eval-s2_casamento_praia-a-1794787378",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "camisa linho azul clara"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "calça alfaiataria bege"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "sapato loafer marrom"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 8,
+                "query": "sapato casamento praia"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p01"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p06"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p10"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "category": null,
+                "search_item_id": "p01",
+                "type": null
+              },
+              "tool": "garment_creation",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "avatar_pose": "NORMAL",
+                "garment_ids": [
+                  "62946f59-f0b2-56a5-bed3-a95db45ce195"
+                ]
+              },
+              "tool": "tryon",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "dbb4e6d1-2685-5415-b372-d3211dee93c2"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 42187,
+          "artifacts": [
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p01.jpg",
+              "item_id": "p01",
+              "kind": "PRODUCT",
+              "name": "Camisa de linho branca",
+              "price": 249.9,
+              "store": "Ateliê Maré",
+              "tags": [
+                "camisa",
+                "linho",
+                "branca",
+                "branco",
+                "verao",
+                "praia",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p01"
+            },
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p06.jpg",
+              "item_id": "p06",
+              "kind": "PRODUCT",
+              "name": "Calça de alfaiataria bege",
+              "price": 279.0,
+              "store": "Linha Reta",
+              "tags": [
+                "calca",
+                "alfaiataria",
+                "bege",
+                "trabalho",
+                "minimalista",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p06"
+            },
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p10.jpg",
+              "item_id": "p10",
+              "kind": "PRODUCT",
+              "name": "Blazer de linho off-white",
+              "price": 520.0,
+              "store": "Casa Brisa",
+              "tags": [
+                "blazer",
+                "linho",
+                "off-white",
+                "casamento",
+                "praia",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p10"
+            },
+            {
+              "garment_ids": [
+                "62946f59-f0b2-56a5-bed3-a95db45ce195"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_bruno/p01.jpg",
+              "item_ids": [
+                "p01"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "branca",
+                "branco",
+                "camisa",
+                "linho",
+                "praia",
+                "unissex",
+                "verao"
+              ],
+              "tryon_id": "dbb4e6d1-2685-5415-b372-d3211dee93c2"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done",
+            "running",
+            "done",
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 42161
+        }
+      ],
+      "failures": [],
+      "latency_ms": 42187
+    },
+    {
+      "id": "s3_ultimo_look",
+      "status": "passed",
+      "title": "Opinião sobre o último look",
+      "turns": [
+        {
+          "message": "O que você acha do meu último look?",
+          "user": "u_carla",
+          "text": "Carla, adorei! O vestido estampado tem cores vibrantes e a cintura marcada valoriza a silhueta. O scarpin preto equilibra o visual e deixa o look charmoso para um brunch.",
+          "errors": [],
+          "conversation_id": "eval-s3_ultimo_look-a-1794787378",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 1
+              },
+              "tool": "looks",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "look_carla_1"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 7026,
+          "artifacts": [
+            {
+              "garment_ids": [
+                "w_carla_1"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_carla/w_carla_1.jpg",
+              "item_ids": [
+                "w_carla_1"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "colorido",
+                "estampado",
+                "vestido"
+              ],
+              "tryon_id": "look_carla_1"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 7000
+        }
+      ],
+      "failures": [],
+      "latency_ms": 7026
+    },
+    {
+      "id": "s4_memoria",
+      "status": "passed",
+      "title": "Preferências entre conversas",
+      "turns": [
+        {
+          "message": "Odeio amarelo, visto M e curto estilo minimalista.",
+          "user": "u_ana__eval1794787378",
+          "text": "Combinado, Ana: vou evitar amarelo e buscar peças no tamanho M, com estilo minimalista. O que você procura hoje?",
+          "errors": [],
+          "conversation_id": "eval-s4_memoria-a-1794787378",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 4475,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 4448
+        },
+        {
+          "message": "Me sugere algo pra um jantar",
+          "user": "u_ana__eval1794787378",
+          "text": "Para um jantar, sugiro a blusa branca ombro a ombro (R$ 119,90) com a calça de alfaiataria bege (R$ 279). O visual fica elegante e minimalista; já mostrei a blusa no seu avatar para você ver como fica.",
+          "errors": [],
+          "conversation_id": "eval-s4_memoria-b-1794787378",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "blusa minimalista jantar"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "calça alfaiataria feminina"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "sapato feminino elegante"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p15"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p06"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "category": null,
+                "search_item_id": "p15",
+                "type": null
+              },
+              "tool": "garment_creation",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "avatar_pose": "NORMAL",
+                "garment_ids": [
+                  "63a81e72-3b5f-51a6-a441-73680cc69121"
+                ]
+              },
+              "tool": "tryon",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "d13289d9-1386-5e10-b41d-18635d40c0b9"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 29701,
+          "artifacts": [
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p15.jpg",
+              "item_id": "p15",
+              "kind": "PRODUCT",
+              "name": "Blusa branca ombro a ombro",
+              "price": 119.9,
+              "store": "Jardim Urbano",
+              "tags": [
+                "blusa",
+                "branca",
+                "branco",
+                "verao",
+                "feminino"
+              ],
+              "url": "https://loja.exemplo/p15"
+            },
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p06.jpg",
+              "item_id": "p06",
+              "kind": "PRODUCT",
+              "name": "Calça de alfaiataria bege",
+              "price": 279.0,
+              "store": "Linha Reta",
+              "tags": [
+                "calca",
+                "alfaiataria",
+                "bege",
+                "trabalho",
+                "minimalista",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p06"
+            },
+            {
+              "garment_ids": [
+                "63a81e72-3b5f-51a6-a441-73680cc69121"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_ana/p15.jpg",
+              "item_ids": [
+                "p15"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "blusa",
+                "branca",
+                "branco",
+                "feminino",
+                "verao"
+              ],
+              "tryon_id": "d13289d9-1386-5e10-b41d-18635d40c0b9"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done",
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 29672
+        },
+        {
+          "message": "Que tamanho eu visto e qual cor eu evito?",
+          "user": "u_ana__eval1794787378",
+          "text": "Você veste tamanho M e evita amarelo.",
+          "errors": [],
+          "conversation_id": "eval-s4_memoria-c-1794787378",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 8932,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 8907
+        },
+        {
+          "message": "Que tamanho eu visto e qual cor eu evito?",
+          "user": "u_ana__other1794787378",
+          "text": "Não tenho seu tamanho nem a cor que você evita registrados aqui, Ana. Se me contar, posso levar isso em conta nas próximas sugestões.",
+          "errors": [],
+          "conversation_id": "eval-s4_memoria-d-1794787378",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 5927,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 5903
+        }
+      ],
+      "failures": [],
+      "latency_ms": 49035
+    },
+    {
+      "id": "s5_jaquetas",
+      "status": "passed",
+      "title": "Jaqueta jeans e depois couro",
+      "turns": [
+        {
+          "message": "Tem jaqueta jeans?",
+          "user": "u_ana",
+          "text": "Não encontrei jaqueta jeans no catálogo. A alternativa mais próxima é a Jaqueta de couro preta, por R$ 899,00.",
+          "errors": [],
+          "conversation_id": "eval-s5_jaquetas-a-1794787378",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 8,
+                "query": "jaqueta jeans"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p07"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 17125,
+          "artifacts": [
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p07.jpg",
+              "item_id": "p07",
+              "kind": "PRODUCT",
+              "name": "Jaqueta de couro preta",
+              "price": 899.0,
+              "store": "Couraça",
+              "tags": [
+                "jaqueta",
+                "couro",
+                "preta",
+                "preto",
+                "inverno",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p07"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 17103
+        },
+        {
+          "message": "Quero provar a jaqueta de couro preta",
+          "user": "u_ana",
+          "text": "Pronto, Ana! Aqui está o try-on da Jaqueta de couro preta, por R$ 899,00.",
+          "errors": [],
+          "conversation_id": "eval-s5_jaquetas-a-1794787378",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "category": null,
+                "search_item_id": "p07",
+                "type": null
+              },
+              "tool": "garment_creation",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "avatar_pose": "NORMAL",
+                "garment_ids": [
+                  "a5f231f1-69f7-568e-93c1-cc592263eaeb"
+                ]
+              },
+              "tool": "tryon",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "2ed65322-7b09-52f7-8a53-63389f384c02"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 21861,
+          "artifacts": [
+            {
+              "garment_ids": [
+                "a5f231f1-69f7-568e-93c1-cc592263eaeb"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_ana/p07.jpg",
+              "item_ids": [
+                "p07"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "couro",
+                "inverno",
+                "jaqueta",
+                "preta",
+                "preto",
+                "unissex"
+              ],
+              "tryon_id": "2ed65322-7b09-52f7-8a53-63389f384c02"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 21848
+        }
+      ],
+      "failures": [],
+      "latency_ms": 38986
+    },
+    {
+      "id": "s6_conversa",
+      "status": "passed",
+      "title": "Oi e capital da França",
+      "turns": [
+        {
+          "message": "Oi",
+          "user": "u_bruno",
+          "text": "Oi, Bruno! Como posso te ajudar com moda hoje?",
+          "errors": [],
+          "conversation_id": "eval-s6_conversa-a-1794787378",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 2367,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 2342
+        },
+        {
+          "message": "Qual a capital da França?",
+          "user": "u_bruno",
+          "text": "A capital da França é Paris. Posso ajudar com alguma dica de moda também!",
+          "errors": [],
+          "conversation_id": "eval-s6_conversa-a-1794787378",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 1834,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 1820
+        }
+      ],
+      "failures": [],
+      "latency_ms": 4201
+    }
+  ]
+}

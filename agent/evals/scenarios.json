@@ -1,0 +1,42 @@
+{
+  "suite": "scenarios",
+  "target": "http://proxy:3000",
+  "scenarios": [
+    {"id": "s1_camisa_linho", "title": "Camisa de linho branca até R$300",
+     "turns": [{"user": "u_ana", "conversation": "a", "message": "Me acha uma camisa de linho branca até R$300",
+                "expect": {"tools_required": ["search_by_text", "show_artifact"], "artifact_kinds_required": ["PRODUCT"],
+                           "max_price": 300, "forbidden_products": ["p02"]}}]},
+    {"id": "s2_casamento_praia", "title": "Casamento na praia",
+     "turns": [{"user": "u_bruno", "conversation": "a", "message": "Tenho um casamento na praia sábado, o que eu visto?",
+                "expect": {"tools_required": ["search_by_text", "show_artifact"], "artifacts_min": 2}}]},
+    {"id": "s3_ultimo_look", "title": "Opinião sobre o último look",
+     "turns": [{"user": "u_carla", "conversation": "a", "message": "O que você acha do meu último look?",
+                "expect": {"tools_required": ["looks", "show_artifact"], "artifact_kinds_required": ["TRYON_CARD"],
+                           "tools_forbidden": ["garment_creation", "tryon"]}}]},
+    {"id": "s4_memoria", "title": "Preferências entre conversas",
+     "turns": [
+       {"user": "u_ana__eval{run}", "conversation": "a", "message": "Odeio amarelo, visto M e curto estilo minimalista."},
+       {"user": "u_ana__eval{run}", "conversation": "b", "message": "Me sugere algo pra um jantar",
+        "expect": {"tools_required": ["search_by_text", "show_artifact"], "forbidden_artifact_terms": "amarel|mostarda"}},
+       {"user": "u_ana__eval{run}", "conversation": "c", "message": "Que tamanho eu visto e qual cor eu evito?",
+        "expect": {"text_must_match": "\\bM\\b", "text_must_match_2": "amarel"}},
+       {"user": "u_ana__other{run}", "conversation": "d", "message": "Que tamanho eu visto e qual cor eu evito?",
+        "expect": {"text_must_not_match": "amarel"}}
+     ]},
+    {"id": "s5_jaquetas", "title": "Jaqueta jeans e depois couro",
+     "turns": [
+       {"user": "u_ana", "conversation": "a", "message": "Tem jaqueta jeans?",
+        "expect": {"tools_required": ["search_by_text"], "tools_forbidden": ["tryon"]}},
+       {"user": "u_ana", "conversation": "a", "message": "Quero provar a jaqueta de couro preta",
+        "expect": {"tools_required": ["garment_creation", "tryon", "show_artifact"], "garment_items": ["p07"],
+                   "artifact_kinds_required": ["TRYON_CARD"]}}
+     ]},
+    {"id": "s6_conversa", "title": "Oi e capital da França",
+     "turns": [
+       {"user": "u_bruno", "conversation": "a", "message": "Oi",
+        "expect": {"tools_forbidden": ["search_by_text", "garment_creation", "tryon", "show_artifact"]}},
+       {"user": "u_bruno", "conversation": "a", "message": "Qual a capital da França?",
+        "expect": {"tools_forbidden": ["search_by_text", "garment_creation", "tryon", "show_artifact"], "text_must_match": "Paris"}}
+     ]}
+  ]
+}

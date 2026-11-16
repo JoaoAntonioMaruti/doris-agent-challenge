@@ -63,6 +63,42 @@ services:
         condition: service_healthy
     command: mix test
 
+  # Fault-injection pair for evals (docker compose --profile eval up -d): a second copy of
+  # the unchanged proxy, configured through its own FAULTS_FILE / CATALOG_OVERRIDES_FILE
+  # support, wired to a second agent instance.
+  proxy-faults:
+    profiles: [eval]
+    build: ./proxy
+    ports: ["3001:3000"]
+    environment:
+      AGENT_URL: http://agent-eval:8000
+      IMAGES_DIR: /seed-images
+      DB_PATH: /data/proxy-faults.db
+      FAULTS_FILE: /fixtures/faults.json
+      CATALOG_OVERRIDES_FILE: /fixtures/catalog_overrides.json
+    volumes:
+      - ./seed-images:/seed-images:ro
+      - ./agent/evals/fixtures:/fixtures:ro
+      - proxy-faults-data:/data
+    depends_on: [agent-eval]
+
+  agent-eval:
+    profiles: [eval]
+    build:
+      context: ./agent
+      target: runtime
+    env_file: .env
+    environment:
+      PROXY_URL: http://proxy-faults:3000
+      DATABASE_URL: ecto://postgres:postgres@db/doris
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-dev-only-secret-key-base-not-used-for-cookies-0123456789abcdef}
+      PHX_HOST: agent-eval
+      MEMORY_MODE: ${MEMORY_MODE:-v1}
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   proxy-data: {}
+  proxy-faults-data: {}
   agent-db: {}

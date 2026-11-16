@@ -33,4 +33,16 @@ defmodule Doris.Agent.FiltersTest do
   test "no constraints keeps everything" do
     assert length(Filters.apply(@products, nil, [])) == 4
   end
+
+  test "shades count as the avoided colour" do
+    polo = %{
+      "search_item_id" => "p25",
+      "name" => "Polo de tricô mostarda",
+      "price" => 189.0,
+      "description" => ""
+    }
+
+    assert Filters.apply([polo], nil, ["amarela"]) == []
+    assert Filters.mentions_color?(polo, "amarelo")
+  end
 end

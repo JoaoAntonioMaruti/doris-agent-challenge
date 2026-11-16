@@ -46,3 +46,10 @@
 - Momento: a extração roda em `Task.Supervisor.async_nolink` **em paralelo** ao loop do agente e é aguardada (até 15 s) antes do `[DONE]`. Uma conversa nova, aberta depois que o turno termina, sempre vê o dado, sem race silenciosa e quase sem latência extra. Falha/timeout é logado e o perfil anterior fica intacto.
 - Uso: preferências entram no system prompt. `disliked_colors` também entram em `State.avoid_colors`, ou seja, filtro rígido em busca/show/try-on. `budget_max` é só dica no prompt (o teto rígido vem do pedido do turno).
 - **Desvio do plano:** `MEMORY_MODEL` padrão = `openai/gpt-6-luna`, não `google/gemini-3.8-flash`. Medido em 2026-11-15: gemini truncou o JSON em ~50% das chamadas; luna 8/8. Continua configurável.
+
+## T08
+- Runner E2E caixa-preta em Elixir (`agent/evals/run.exs`), executado no container `agent-test` com `mix run --no-start`. Fala só com `POST /chat` do proxy e usa `GET /admin/log` apenas para verificação (nunca em `agent/lib`).
+- Cenários em JSON (`evals/scenarios.json`, `evals/faults.json`) com asserções declarativas por turno (tools exigidas/proibidas, tipos de card, teto de preço, produtos proibidos/exigidos, termos proibidos em cards, contagem de chamadas, feedback de erro, outcome, latência, regex no texto). Invariantes checados em todo turno: sem erro no stream, outcome `done`, tryon ≤1 peça, try-on gerado sempre mostrado, erro `retryable=false` não repetido, PRODUCT mostrado veio de uma busca.
+- Falhas sem tocar em `proxy/`: profile `eval` sobe `proxy-faults` (o mesmo `./proxy`, com `FAULTS_FILE`/`CATALOG_OVERRIDES_FILE` de `agent/evals/fixtures/`) + `agent-eval` apontando para ele. O `proxy` original segue sem faults.
+- Relatórios: `evals/reports/<suite>-<timestamp>.{json,md}` e `<suite>-latest.*`, com p50/p95 só sobre as latências medidas (amostras pequenas, não generalizar).
+- Asserções de texto são regex simples; a avaliação de "coerência" do look (cenário 2) não é automatizada além de tools/cards.
