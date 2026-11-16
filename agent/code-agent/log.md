@@ -1,7 +1,7 @@
 # Log de execução
 
 - Início oficial: 2026-11-15 20:31:12 -03:00
-- Término: PENDENTE
+- Término: 2026-11-15 21:25:47 -03:00
 - Fuso: America/Sao_Paulo
 
 | ID | Tarefa | Estado | Início real | Conclusão real | Evidência | Commit SHA |
@@ -14,8 +14,8 @@
 | T06 | Teste integrado do fluxo principal | Concluída | 2026-11-15 20:50:28 -03:00 | 2026-11-15 20:52:18 -03:00 | Frontend `localhost:3000` via Claude in Chrome: cenário 1 mostrou feedback ✓ busca/try-on, card p01 R$249,90 e imagem do try-on (`code-agent/evidence/t06-cenario1-frontend.jpg`); cenário 5 após ajuste de prompt: texto sem markdown + alternativa p07 com card; 33 tests, 0 failures | aad9395 |
 | T07 | Memória estruturada v1 com feature flag | Concluída | 2026-11-15 20:53:02 -03:00 | 2026-11-15 21:00:25 -03:00 | 40 tests, 0 failures; real cenário 4: `u_ana__t071873` salvou M/amarelo/minimalista; conversa nova respondeu "Você veste tamanho M e evita amarelo."; `u_ana__x071873` não sabe nada; "vestidos midi": proxy retornou p04 (amarelo) em 1º e o filtro removeu; `MEMORY_MODE=v3` falha no boot | e410688 |
 | T08 | Runner E2E e cenários adversariais | Concluída | 2026-11-15 21:00:38 -03:00 | 2026-11-15 21:15:17 -03:00 | 41 tests, 0 failures; `evals/run.exs` via proxy real: cenários 6/6 em 2 rodadas (p50 5,8 s / p95 32,0 s na última, 11 turnos); falhas 6/6 após corrigir asserção do f3 (1ª rodada 5/6) — `evals/reports/*-latest.md` | 3e20d5b |
-| T09 | Memória semântica v2 (opcional) | Concluída | 2026-11-15 21:15:20 -03:00 | 2026-11-15 21:24:39 -03:00 | 45 tests, 0 failures; dimensão 1536 confirmada na OpenRouter; `evals/memory.json` v1 2/3 (m3: nota sobrescrita, esqueceu "bicicleta") × v2 3/3 (recupera bicicleta + alergia a lã); falha de embedding degrada para v1 (teste) | — |
-| T10 | Documentação de entrega | Pendente | — | — | — | — |
+| T09 | Memória semântica v2 (opcional) | Concluída | 2026-11-15 21:15:20 -03:00 | 2026-11-15 21:24:39 -03:00 | 45 tests, 0 failures; dimensão 1536 confirmada na OpenRouter; `evals/memory.json` v1 2/3 (m3: nota sobrescrita, esqueceu "bicicleta") × v2 3/3 (recupera bicicleta + alergia a lã); falha de embedding degrada para v1 (teste) | b75d39a |
+| T10 | Documentação de entrega | Concluída | 2026-11-15 21:24:44 -03:00 | 2026-11-15 21:25:47 -03:00 | README de entrega; `mix format --check-formatted` ok; `compile --warnings-as-errors` ok; 45 tests, 0 failures (banco de teste recriado); 3 migrations aplicadas; `/health` 200; fora de `agent/` só `docker-compose.yml` (serviço `agent` + `db`, `agent-test`, `proxy-faults`, `agent-eval`) | — |
 
 ## Ocorrências
 - T09: usuário indicou `~/Developer/poc_embedding` como referência; seguido o padrão (pgvector Ecto type, `Postgrex.Types`, validação de dimensão, `cosine_distance`), com o endpoint `/embeddings` da OpenRouter.

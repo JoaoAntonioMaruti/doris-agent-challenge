@@ -63,3 +63,8 @@ docker compose --profile test run --rm agent-test mix run --no-start evals/run.e
   - v1: 2/3. m1 (cenário 4) e m2 (fato indireto: escritório de advocacia/Curitiba, guardado em `notes`) passam; m3 falha: após "pedalo para o trabalho" e depois "tenho alergia a lã" em outra conversa, respondeu "Lembro que você tem alergia a lã. Não tenho anotado como você vai para o trabalho."
   - v2: 3/3. m3: "Sim! Você vai de bicicleta para o trabalho todos os dias e tem alergia a lã."
 - Agente devolvido ao padrão `MEMORY_MODE=v1` depois da comparação.
+
+## T10 (verificação final)
+- `mix format --check-formatted`: ok. `mix compile --warnings-as-errors --force`: ok. `mix test` com `ecto.drop` antes: 45 tests, 0 failures.
+- Banco do runtime: migrations `20261115000001`, `…02`, `…03` aplicadas. `/health` → 200.
+- `git diff main` fora de `agent/`: só `docker-compose.yml` (linha removida: `build: ./agent`, substituída por build com `target: runtime`).
