@@ -53,3 +53,13 @@
 - Falhas sem tocar em `proxy/`: profile `eval` sobe `proxy-faults` (o mesmo `./proxy`, com `FAULTS_FILE`/`CATALOG_OVERRIDES_FILE` de `agent/evals/fixtures/`) + `agent-eval` apontando para ele. O `proxy` original segue sem faults.
 - Relatórios: `evals/reports/<suite>-<timestamp>.{json,md}` e `<suite>-latest.*`, com p50/p95 só sobre as latências medidas (amostras pequenas, não generalizar).
 - Asserções de texto são regex simples; a avaliação de "coerência" do look (cenário 2) não é automatizada além de tools/cards.
+
+## T09 (MEMORY_MODE=v2, opt-in)
+- Referência: `~/Developer/poc_embedding` (indicada pelo usuário). Mesmo padrão: `pgvector` (`Pgvector.Ecto.Vector`, `Doris.PostgrexTypes`), validação da dimensão no cliente, busca por `cosine_distance` filtrada por `user_id`.
+- Embeddings só via OpenRouter (`/embeddings`, `openai/text-embedding-3-small`). Dimensão **1536 verificada** na resposta real em 2026-11-15; vetores de outro tamanho são rejeitados (`{:unexpected_dimensions, …}`).
+- Migração habilita `vector` e cria `semantic_memories` (unique `user_id, source_key`; índice por `user_id`; sem índice vetorial — poucas linhas por usuário, scan filtrado basta).
+- v2 = v1 + fatos. `Semantic.update` roda a extração v1 e a de fatos em paralelo (na mesma tarefa supervisionada e aguardada do turno, então não há entrega assíncrona perdida em restart). Fatos: até 3 por mensagem, ≤200 chars, "A pessoa…", extraídos pelo `MEMORY_MODEL`.
+- Recall: embedding da mensagem atual → top-3 do mesmo usuário com distância ≤ 0,65 → anexados ao prompt como "Lembranças relevantes". Cores evitadas continuam vindo só de `user_preferences` (regra rígida não depende de top-k).
+- Idempotência: `source_key = "facts-v1:" <> sha256(fato normalizado)`, `ON CONFLICT DO NOTHING`; `pg_advisory_xact_lock` por usuário serializa escritas concorrentes.
+- Degradação: qualquer falha (extração, embedding, banco) é logada e o turno segue com v1; `user_preferences` não é tocada. Boot com `MEMORY_MODE=v2` sem extensão/tabela falha cedo (`Doris.Application`).
+- Limite conhecido: a v1 guarda só uma `notes` (sobrescrita). Por isso v2 ganha em fatos acumulados (m3). Não há deduplicação semântica (fatos parecidos com texto diferente viram linhas distintas) nem expiração.

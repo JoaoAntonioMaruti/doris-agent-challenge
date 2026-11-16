@@ -1,0 +1,241 @@
+{
+  "started_at": "2026-11-16T00:18:36.493722Z",
+  "target": "http://proxy:3000",
+  "summary": {
+    "total": 2,
+    "failed": 0,
+    "turns": 5,
+    "passed": 2,
+    "p50_ms": 4841,
+    "p95_ms": 27921
+  },
+  "memory_mode": "v1",
+  "model": "openai/gpt-6-luna (padrão do agente)",
+  "suite": "memory",
+  "finished_at": "2026-11-16T00:19:23.046033Z",
+  "scenarios": [
+    {
+      "id": "m1_preferencias",
+      "status": "passed",
+      "title": "Cenário 4 (preferências explícitas)",
+      "turns": [
+        {
+          "message": "Odeio amarelo, visto M e curto estilo minimalista.",
+          "user": "u_ana__mem1794788316",
+          "text": "Combinado, Ana: vou evitar amarelo, buscar peças no tamanho M e priorizar um estilo minimalista. Quer procurar alguma peça ou montar um look?",
+          "errors": [],
+          "conversation_id": "eval-m1_preferencias-a-1794788316",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 4406,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 4311
+        },
+        {
+          "message": "Me sugere algo pra um jantar",
+          "user": "u_ana__mem1794788316",
+          "text": "Para um jantar, sugiro a blusa branca ombro a ombro por R$ 119,90 com a calça de alfaiataria bege por R$ 279. Já mostrei as peças e fiz um try-on da blusa.",
+          "errors": [],
+          "conversation_id": "eval-m1_preferencias-b-1794788316",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "blusa minimalista jantar"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "calça alfaiataria feminina"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "sapato feminino elegante"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p15"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p06"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "category": null,
+                "search_item_id": "p15",
+                "type": null
+              },
+              "tool": "garment_creation",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "avatar_pose": "NORMAL",
+                "garment_ids": [
+                  "a0fbe6f1-de4e-5bac-9646-8fe968d80de2"
+                ]
+              },
+              "tool": "tryon",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "91b451de-2efc-5f6a-8c2a-fb9007c77133"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 27921,
+          "artifacts": [
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p15.jpg",
+              "item_id": "p15",
+              "kind": "PRODUCT",
+              "name": "Blusa branca ombro a ombro",
+              "price": 119.9,
+              "store": "Jardim Urbano",
+              "tags": [
+                "blusa",
+                "branca",
+                "branco",
+                "verao",
+                "feminino"
+              ],
+              "url": "https://loja.exemplo/p15"
+            },
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p06.jpg",
+              "item_id": "p06",
+              "kind": "PRODUCT",
+              "name": "Calça de alfaiataria bege",
+              "price": 279.0,
+              "store": "Linha Reta",
+              "tags": [
+                "calca",
+                "alfaiataria",
+                "bege",
+                "trabalho",
+                "minimalista",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p06"
+            },
+            {
+              "garment_ids": [
+                "a0fbe6f1-de4e-5bac-9646-8fe968d80de2"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_ana/p15.jpg",
+              "item_ids": [
+                "p15"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "blusa",
+                "branca",
+                "branco",
+                "feminino",
+                "verao"
+              ],
+              "tryon_id": "91b451de-2efc-5f6a-8c2a-fb9007c77133"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done",
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 27899
+        },
+        {
+          "message": "Que tamanho eu visto e qual cor eu evito?",
+          "user": "u_ana__memx1794788316",
+          "text": "Ainda não tenho essa informação, Ana. Se você me disser seu tamanho e quais cores evita, levo isso em conta nas próximas sugestões.",
+          "errors": [],
+          "conversation_id": "eval-m1_preferencias-c-1794788316",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 4841,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 4816
+        }
+      ],
+      "failures": [],
+      "latency_ms": 37168
+    },
+    {
+      "id": "m2_linguagem_indireta",
+      "status": "passed",
+      "title": "Fato indireto lembrado em outra conversa",
+      "turns": [
+        {
+          "message": "Trabalho num escritório de advocacia bem tradicional e moro em Curitiba, que é muito frio.",
+          "user": "u_bruno__mem1794788316",
+          "text": "Entendi, Bruno: vou considerar um estilo formal e discreto para o escritório, com peças quentinhas para o frio de Curitiba. Quer ajuda para montar um look de trabalho?",
+          "errors": [],
+          "conversation_id": "eval-m2_linguagem_indireta-a-1794788316",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 5759,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 5737
+        },
+        {
+          "message": "O que você lembra sobre meu trabalho e onde eu moro?",
+          "user": "u_bruno__mem1794788316",
+          "text": "Você trabalha em um escritório de advocacia tradicional e, pelas minhas notas, mora em Curitiba.",
+          "errors": [],
+          "conversation_id": "eval-m2_linguagem_indireta-b-1794788316",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 3618,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 3594
+        }
+      ],
+      "failures": [],
+      "latency_ms": 9377
+    }
+  ]
+}

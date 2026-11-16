@@ -53,7 +53,7 @@ defmodule DorisWeb.ChatController do
     # and awaited before the turn ends, so a new conversation always sees them.
     extraction =
       Task.Supervisor.async_nolink(Doris.TaskSupervisor, fn ->
-        Memory.update(req.user_id, %{user_text: text})
+        Memory.update(req.user_id, %{user_text: text, conversation_id: req.conversation_id})
       end)
 
     state =

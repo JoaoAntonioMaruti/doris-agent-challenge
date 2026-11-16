@@ -48,7 +48,8 @@ defmodule Doris.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:req, "~> 0.5"}
+      {:req, "~> 0.5"},
+      {:pgvector, "~> 0.3"}
     ]
   end
 

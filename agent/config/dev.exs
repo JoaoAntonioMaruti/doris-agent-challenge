@@ -2,6 +2,7 @@ import Config
 
 # Configure your database
 config :doris, Doris.Repo,
+  types: Doris.PostgrexTypes,
   username: "postgres",
   password: "postgres",
   hostname: System.get_env("DB_HOST", "localhost"),

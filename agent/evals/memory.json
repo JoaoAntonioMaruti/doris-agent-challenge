@@ -1,0 +1,91 @@
+{
+ "suite": "memory",
+ "target": "http://proxy:3000",
+ "notes": "Run once with MEMORY_MODE=v1 and once with v2 to compare.",
+ "scenarios": [
+  {
+   "id": "m1_preferencias",
+   "title": "Cenário 4 (preferências explícitas)",
+   "turns": [
+    {
+     "user": "u_ana__mem{run}",
+     "conversation": "a",
+     "message": "Odeio amarelo, visto M e curto estilo minimalista."
+    },
+    {
+     "user": "u_ana__mem{run}",
+     "conversation": "b",
+     "message": "Me sugere algo pra um jantar",
+     "expect": {
+      "tools_required": [
+       "search_by_text",
+       "show_artifact"
+      ],
+      "forbidden_artifact_terms": "amarel|mostarda"
+     }
+    },
+    {
+     "user": "u_ana__memx{run}",
+     "conversation": "c",
+     "message": "Que tamanho eu visto e qual cor eu evito?",
+     "expect": {
+      "text_must_not_match": "amarel"
+     }
+    }
+   ]
+  },
+  {
+   "id": "m2_linguagem_indireta",
+   "title": "Fato indireto lembrado em outra conversa",
+   "turns": [
+    {
+     "user": "u_bruno__mem{run}",
+     "conversation": "a",
+     "message": "Trabalho num escritório de advocacia bem tradicional e moro em Curitiba, que é muito frio."
+    },
+    {
+     "user": "u_bruno__mem{run}",
+     "conversation": "b",
+     "message": "O que você lembra sobre meu trabalho e onde eu moro?",
+     "expect": {
+      "text_must_match": "advoca|escrit",
+      "text_must_match_2": "Curitiba|fri"
+     }
+    }
+   ]
+  },
+  {
+   "id": "m3_fatos_acumulados",
+   "title": "Vários fatos em conversas diferentes (v1 guarda só uma nota)",
+   "turns": [
+    {
+     "user": "u_bruno__acc{run}",
+     "conversation": "a",
+     "message": "Eu pedalo para o trabalho todo dia."
+    },
+    {
+     "user": "u_bruno__acc{run}",
+     "conversation": "b",
+     "message": "Ah, e tenho alergia a lã."
+    },
+    {
+     "user": "u_bruno__acc{run}",
+     "conversation": "c",
+     "message": "Vou para o trabalho de bicicleta amanhã, que roupa é prática pra isso?",
+     "expect": {
+      "text_must_match": "bicicleta|pedal|ciclis|prátic"
+     }
+    },
+    {
+     "user": "u_bruno__acc{run}",
+     "conversation": "d",
+     "message": "Você lembra como eu vou para o trabalho e de alguma alergia minha?",
+     "expect": {
+      "text_must_match": "bicicleta|pedal",
+      "text_must_match_2": "l[aã]"
+     }
+    }
+   ]
+  }
+ ]
+}

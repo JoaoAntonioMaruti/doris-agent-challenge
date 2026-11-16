@@ -6,6 +6,7 @@ import Config
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :doris, Doris.Repo,
+  types: Doris.PostgrexTypes,
   username: "postgres",
   password: "postgres",
   hostname: System.get_env("DB_HOST", "localhost"),
