@@ -1,0 +1,436 @@
+{
+  "started_at": "2026-11-16T00:20:58.424144Z",
+  "target": "http://proxy:3000",
+  "summary": {
+    "total": 3,
+    "failed": 1,
+    "turns": 9,
+    "passed": 2,
+    "p50_ms": 3382,
+    "p95_ms": 34033
+  },
+  "memory_mode": "v1",
+  "model": "openai/gpt-6-luna (padrão do agente)",
+  "suite": "memory",
+  "finished_at": "2026-11-16T00:22:20.782852Z",
+  "scenarios": [
+    {
+      "id": "m1_preferencias",
+      "status": "passed",
+      "title": "Cenário 4 (preferências explícitas)",
+      "turns": [
+        {
+          "message": "Odeio amarelo, visto M e curto estilo minimalista.",
+          "user": "u_ana__mem1794788458",
+          "text": "Combinado, Ana: vou evitar amarelo, considerar tamanho M e priorizar peças minimalistas. O que você está procurando?",
+          "errors": [],
+          "conversation_id": "eval-m1_preferencias-a-1794788458",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 3505,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 3460
+        },
+        {
+          "message": "Me sugere algo pra um jantar",
+          "user": "u_ana__mem1794788458",
+          "text": "Ana, o vestido midi preto minimalista (R$ 389) é uma escolha elegante e versátil para o jantar. Já mostrei a peça e o try-on para você conferir.",
+          "errors": [],
+          "conversation_id": "eval-m1_preferencias-b-1794788458",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "vestido jantar minimalista"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "sapato jantar elegante"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "bolsa jantar minimalista"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p05"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "category": null,
+                "search_item_id": "p05",
+                "type": null
+              },
+              "tool": "garment_creation",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "avatar_pose": "NORMAL",
+                "garment_ids": [
+                  "81598dd2-13ff-5ddb-83ea-5b1b920cd758"
+                ]
+              },
+              "tool": "tryon",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "008b4424-6bd4-5c37-b551-7b93905dd929"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 23650,
+          "artifacts": [
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p05.jpg",
+              "item_id": "p05",
+              "kind": "PRODUCT",
+              "name": "Vestido midi preto minimalista",
+              "price": 389.0,
+              "store": "Linha Reta",
+              "tags": [
+                "vestido",
+                "midi",
+                "preto",
+                "minimalista",
+                "jantar",
+                "elegante",
+                "feminino"
+              ],
+              "url": "https://loja.exemplo/p05"
+            },
+            {
+              "garment_ids": [
+                "81598dd2-13ff-5ddb-83ea-5b1b920cd758"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_ana/p05.jpg",
+              "item_ids": [
+                "p05"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "elegante",
+                "feminino",
+                "jantar",
+                "midi",
+                "minimalista",
+                "preto",
+                "vestido"
+              ],
+              "tryon_id": "008b4424-6bd4-5c37-b551-7b93905dd929"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done",
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 23624
+        },
+        {
+          "message": "Que tamanho eu visto e qual cor eu evito?",
+          "user": "u_ana__memx1794788458",
+          "text": "Ainda não tenho essa informação, Ana. Me diga seu tamanho habitual e quais cores prefere evitar, que levo isso em conta nas próximas sugestões.",
+          "errors": [],
+          "conversation_id": "eval-m1_preferencias-c-1794788458",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 3300,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 3274
+        }
+      ],
+      "failures": [],
+      "latency_ms": 30455
+    },
+    {
+      "id": "m2_linguagem_indireta",
+      "status": "passed",
+      "title": "Fato indireto lembrado em outra conversa",
+      "turns": [
+        {
+          "message": "Trabalho num escritório de advocacia bem tradicional e moro em Curitiba, que é muito frio.",
+          "user": "u_bruno__mem1794788458",
+          "text": "Entendi, Bruno: vou considerar um estilo mais clássico e profissional, com peças quentes para o frio de Curitiba. Quer montar um look para o escritório ou buscar alguma peça específica?",
+          "errors": [],
+          "conversation_id": "eval-m2_linguagem_indireta-a-1794788458",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 5264,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 5243
+        },
+        {
+          "message": "O que você lembra sobre meu trabalho e onde eu moro?",
+          "user": "u_bruno__mem1794788458",
+          "text": "Lembro que você trabalha em um escritório de advocacia tradicional. Sobre onde mora, tenho informações diferentes: minhas notas dizem Curitiba, mas seu perfil indica Rio de Janeiro.",
+          "errors": [],
+          "conversation_id": "eval-m2_linguagem_indireta-b-1794788458",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 3382,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 3358
+        }
+      ],
+      "failures": [],
+      "latency_ms": 8646
+    },
+    {
+      "id": "m3_fatos_acumulados",
+      "status": "failed",
+      "title": "Vários fatos em conversas diferentes (v1 guarda só uma nota)",
+      "turns": [
+        {
+          "message": "Eu pedalo para o trabalho todo dia.",
+          "user": "u_bruno__acc1794788458",
+          "text": "Boa, Bruno! Posso sugerir roupas confortáveis e práticas para pedalar até o trabalho. Você busca um look para o trajeto ou peças específicas?",
+          "errors": [],
+          "conversation_id": "eval-m3_fatos_acumulados-a-1794788458",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 3104,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 3066
+        },
+        {
+          "message": "Ah, e tenho alergia a lã.",
+          "user": "u_bruno__acc1794788458",
+          "text": "Entendido, Bruno! Vou evitar peças de lã nas próximas recomendações.",
+          "errors": [],
+          "conversation_id": "eval-m3_fatos_acumulados-b-1794788458",
+          "tool_calls": [],
+          "failures": [],
+          "latency_ms": 2975,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 2951
+        },
+        {
+          "message": "Vou para o trabalho de bicicleta amanhã, que roupa é prática pra isso?",
+          "user": "u_bruno__acc1794788458",
+          "text": "Para pedalar até o trabalho, eu iria de camiseta leve e calça flexível, sem peças soltas que possam prender na bicicleta. Mostrei a Camiseta branca básica por R$ 59,90 e a Calça chino cáqui por R$ 219,00; não encontrei um tênis adequado na busca. Use um tênis fechado que você já tenha e leve uma camisa para trocar, se quiser chegar mais arrumado.",
+          "errors": [],
+          "conversation_id": "eval-m3_fatos_acumulados-c-1794788458",
+          "tool_calls": [
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "camiseta masculina leve respirável"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "calça masculina leve flexível"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "tênis masculino confortável casual"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 8,
+                "query": "tênis masculino casual confortável"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p23"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p22"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "category": null,
+                "search_item_id": "p23",
+                "type": null
+              },
+              "tool": "garment_creation",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "avatar_pose": "NORMAL",
+                "garment_ids": [
+                  "6f909e91-80bf-569e-8be5-8fc179263190"
+                ]
+              },
+              "tool": "tryon",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "TRYON_CARD",
+                "value": "9af018e3-0072-56b4-92a3-65ee4aca3783"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            }
+          ],
+          "failures": [],
+          "latency_ms": 34033,
+          "artifacts": [
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p23.jpg",
+              "item_id": "p23",
+              "kind": "PRODUCT",
+              "name": "Camiseta branca básica",
+              "price": 59.9,
+              "store": "Básico Bom",
+              "tags": [
+                "camiseta",
+                "branca",
+                "branco",
+                "basico",
+                "minimalista",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p23"
+            },
+            {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p22.jpg",
+              "item_id": "p22",
+              "kind": "PRODUCT",
+              "name": "Calça chino cáqui",
+              "price": 219.0,
+              "store": "Ateliê Maré",
+              "tags": [
+                "calca",
+                "chino",
+                "caqui",
+                "bege",
+                "casual",
+                "trabalho",
+                "masculino"
+              ],
+              "url": "https://loja.exemplo/p22"
+            },
+            {
+              "garment_ids": [
+                "6f909e91-80bf-569e-8be5-8fc179263190"
+              ],
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_bruno/p23.jpg",
+              "item_ids": [
+                "p23"
+              ],
+              "kind": "TRYON_CARD",
+              "tags": [
+                "basico",
+                "branca",
+                "branco",
+                "camiseta",
+                "minimalista",
+                "unissex"
+              ],
+              "tryon_id": "9af018e3-0072-56b4-92a3-65ee4aca3783"
+            }
+          ],
+          "feedback_states": [
+            "running",
+            "done",
+            "running",
+            "done",
+            "running",
+            "done"
+          ],
+          "outcome": "done",
+          "proxy_duration_ms": 34008
+        },
+        {
+          "message": "Você lembra como eu vou para o trabalho e de alguma alergia minha?",
+          "user": "u_bruno__acc1794788458",
+          "text": "Lembro que você tem alergia a lã. Não tenho anotado como você vai para o trabalho.",
+          "errors": [],
+          "conversation_id": "eval-m3_fatos_acumulados-d-1794788458",
+          "tool_calls": [],
+          "failures": [
+            "texto não casa /bicicleta|pedal/"
+          ],
+          "latency_ms": 3135,
+          "artifacts": [],
+          "feedback_states": [],
+          "outcome": "done",
+          "proxy_duration_ms": 3113
+        }
+      ],
+      "failures": [
+        "turno 4: texto não casa /bicicleta|pedal/"
+      ],
+      "latency_ms": 43247
+    }
+  ]
+}

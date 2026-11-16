@@ -1,0 +1,49 @@
+# Log de execução
+
+- Início oficial: 2026-11-15 20:31:12 -03:00
+- Término: 2026-11-15 23:46:36 -03:00 (T10 em 2026-11-15 21:25:47)
+- Fuso: America/Sao_Paulo
+
+## Tempo de execução
+- Total (início oficial → término): 3h15min24s de 4h
+- Núcleo do desafio (T01–T10, início → conclusão da T10): 54min35s
+- Soma do tempo dentro das tarefas: T01–T10 51min20s · T11–T14 25min10s
+- O restante foi entre tarefas: revisões, logs, memória v2 como padrão, ajuste do recall, diagrama, gráfico e README.
+
+| ID | Tarefa | Estado | Início real | Conclusão real | Duração | Evidência | Commit SHA |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| T01 | Docker e contrato mínimo | Concluída | 2026-11-15 20:31:12 -03:00 | 2026-11-15 20:37:18 -03:00 | 6min06s | `agent-test`: 3 tests, 0 failures; `GET http://agent:8000/health` → 200 `{"status":"ok"}` a partir do container do proxy | cc6ed40 |
+| T02 | OpenRouter + resposta SSE | Concluída | 2026-11-15 20:37:32 -03:00 | 2026-11-15 20:40:06 -03:00 | 2min34s | 10 tests, 0 failures; `POST /chat` (proxy) "Oi" → texto real do gpt-6-luna + `done`; SSE bruto: 1 texto, 1 `finish_reason: stop`, `[DONE]` ×1 | 532d71c |
+| T03 | Tools HTTP | Concluída | 2026-11-15 20:40:10 -03:00 | 2026-11-15 20:41:51 -03:00 | 1min41s | 15 tests, 0 failures; 7 tools chamadas no proxy real (search→p01 R$249.9, garment, tryon, avatar, looks, wardrobe, show_artifact `ok`; `not_found` e `conversation_not_found` com retryable=false) | 0da47dc |
+| T04 | Agent Loop e artifacts | Concluída | 2026-11-15 20:42:15 -03:00 | 2026-11-15 20:45:59 -03:00 | 3min44s | 26 tests, 0 failures; real cenário 1 (`t04-s1-20061`): search_by_text → show_artifact PRODUCT p01 → garment_creation → tryon (1 garment) → show_artifact TRYON_CARD, 20,5 s, p02 R$459 filtrado; "capital da França" sem tools, 1,3 s | f48ecb7 |
+| T05 | Histórico persistente | Concluída | 2026-11-15 20:46:24 -03:00 | 2026-11-15 20:49:25 -03:00 | 3min01s | 33 tests, 0 failures; real cenário 5 (2 turnos, mesma conversa): turno 2 usou p07 vindo da busca do turno 1 (allowlist persistida) → garment_creation → tryon → show TRYON_CARD; 8 mensagens com pares tool_call/tool íntegros, 4 tool_executions | 16ba748 |
+| T06 | Teste integrado do fluxo principal | Concluída | 2026-11-15 20:50:28 -03:00 | 2026-11-15 20:52:18 -03:00 | 1min50s | Frontend `localhost:3000` via Claude in Chrome: cenário 1 mostrou feedback ✓ busca/try-on, card p01 R$249,90 e imagem do try-on (`code-agent/evidence/t06-cenario1-frontend.jpg`); cenário 5 após ajuste de prompt: texto sem markdown + alternativa p07 com card; 33 tests, 0 failures | 07487ff |
+| T07 | Memória estruturada v1 com feature flag | Concluída | 2026-11-15 20:53:02 -03:00 | 2026-11-15 21:00:25 -03:00 | 7min23s | 40 tests, 0 failures; real cenário 4: `u_ana__t071873` salvou M/amarelo/minimalista; conversa nova respondeu "Você veste tamanho M e evita amarelo."; `u_ana__x071873` não sabe nada; "vestidos midi": proxy retornou p04 (amarelo) em 1º e o filtro removeu; `MEMORY_MODE=v3` falha no boot | 3a31806 |
+| T08 | Runner E2E e cenários adversariais | Concluída | 2026-11-15 21:00:38 -03:00 | 2026-11-15 21:15:17 -03:00 | 14min39s | 41 tests, 0 failures; `evals/run.exs` via proxy real: cenários 6/6 em 2 rodadas (p50 5,8 s / p95 32,0 s na última, 11 turnos); falhas 6/6 após corrigir asserção do f3 (1ª rodada 5/6) — `evals/reports/*-latest.md` | d2a1d70 |
+| T09 | Memória semântica v2 (opcional) | Concluída | 2026-11-15 21:15:20 -03:00 | 2026-11-15 21:24:39 -03:00 | 9min19s | 45 tests, 0 failures; dimensão 1536 confirmada na OpenRouter; `evals/memory.json` v1 2/3 (m3: nota sobrescrita, esqueceu "bicicleta") × v2 3/3 (recupera bicicleta + alergia a lã); falha de embedding degrada para v1 (teste) | 6c1fb6a |
+| T10 | Documentação de entrega | Concluída | 2026-11-15 21:24:44 -03:00 | 2026-11-15 21:25:47 -03:00 | 1min03s | README de entrega; `mix format --check-formatted` ok; `compile --warnings-as-errors` ok; 45 tests, 0 failures (banco de teste recriado); 3 migrations aplicadas; `/health` 200; fora de `agent/` só `docker-compose.yml` (serviço `agent` + `db`, `agent-test`, `proxy-faults`, `agent-eval`) | 49b86b6 |
+| T11 | Histórico persistido durante o turno | Concluída | 2026-11-15 22:02:12 -03:00 | 2026-11-15 22:05:52 -03:00 | 3min40s | 47 tests, 0 failures (`TurnRecoveryTest`: exceção após try-on mantém mensagem do usuário, pares assistant/tool e allowlist p01/g-p01/t-1; turno seguinte vê o contexto); E2E cenários 6/6 com MEMORY_MODE=v2; s5 persistido em ordem (12 mensagens) | dd8367a |
+| T12 | Timeout do LLM compatível com o orçamento | Concluída | 2026-11-15 22:05:57 -03:00 | 2026-11-15 22:07:01 -03:00 | 1min04s | 53 tests, 0 failures (`OpenRouterTest`: cálculo do timeout, timeout de transporte no principal → gemini responde, sem tentativa com <3 s); logs reais `timeout_ms=20000` em agent, memory.preferences e memory.facts | 907b835 |
+| T13 | Memória com Task.Supervisor e retry automático | Concluída | 2026-11-15 22:07:22 -03:00 | 2026-11-15 22:08:36 -03:00 | 1min14s | 58 tests, 0 failures (`WorkerTest`: 2 timeouts + sucesso = 3 chamadas e preferência salva; 400 = 1 chamada; JSON truncado repetido; 3 timeouts = desiste e perfil anterior intacto; await não mata tarefa lenta); real: "eu gosto de festas" gravou fato v2 | a9ed51e |
+| T14 | Sem retry em tools com efeito colateral | Concluída | 2026-11-15 22:09:45 -03:00 | 2026-11-15 22:28:57 -03:00 | 19min12s | 64 tests, 0 failures; faults 7/7 (novo f7: tryon 503 retryable → 1 chamada + card p16 + feedback error); cenários 6/6 (p50 7,3 s, p95 27,4 s) | 0b0ea55 |
+
+## Ocorrências
+- 2026-11-15 23:45:01 -03:00: revisão externa do gráfico levou à investigação do f6 nos logs: o agente abandona a chamada lenta, mas o proxy a conclui depois (status 200). Timeout das tools passou a ser limitado pelo tempo restante do turno (commit separado); recuperação do try-on órfão ficou como próximo passo.
+- T14: 1ª rodada dos cenários travou 12 min sem relatório: o agente (recriado às 01:10) não recebia turnos, enquanto o proxy principal, não recriado, aceitava `POST /chat`. Causa provável: conexões do proxy presas ao container antigo do agente. `docker compose restart proxy` resolveu; nova rodada 6/6. Recomendação: subir o stack inteiro junto (`docker compose up -d`) após rebuild do agente.
+- T13: verificação real mostrou que o fato "A pessoa gosta de festas." é gravado, mas "O que você sabe sobre mim?" não o recupera: distância 0,747 (limite 0,65); "roupa para festa" = 0,467. Limitação do recall da T09, corrigida em commit separado: o recall inclui também os 2 fatos mais recentes; a mesma pergunta passou a responder "…mora em Belo Horizonte e gosta de festas."
+- T09: usuário indicou `~/Developer/poc_embedding` como referência; seguido o padrão (pgvector Ecto type, `Postgrex.Types`, validação de dimensão, `cosine_distance`), com o endpoint `/embeddings` da OpenRouter.
+- T09: 1ª sonda de embeddings via Req no container deu timeout (pontual); repetida em 1,3 s. Cliente usa `receive_timeout` 20 s.
+- T09: fatos extraídos vinham como "Ela trabalha…" para Bruno (gênero suposto). Prompt passou a exigir "A pessoa…".
+- T09: na 1ª comparação o caso indireto (m2) passou também em v1, porque `notes` guardou o fato. A diferença só aparece com fatos acumulados (m3): v1 guarda uma única `notes`, sobrescrita.
+- T08: catálogo revelou p25 "Polo de tricô mostarda" (tag amarelo, sem "amarelo" no nome/descrição, e a busca não retorna tags). Filtro de cor ganhou tabela de tons (amarelo→mostarda/ocre/…).
+- T08: 1ª rodada da suíte de falhas 5/6: f3 ("smoking", busca vazia) falhou por `artifacts_max: 0`, mas o agente disse "Não encontrei smoking" e ofereceu alternativa real (blazer p26) — comportamento pedido pelo prompt. A asserção estava errada; trocada por texto honesto + nenhum card de smoking. Rodada seguinte 6/6.
+- T08: IDs alucinados, argumento inválido e loop sem progresso não são reproduzíveis de forma determinística com o modelo real; estão cobertos por testes unitários com LLM roteirizado (`RunnerTest`, `ExecutorTest`), não pelo E2E.
+- T07: 1ª execução real do cenário 4 não salvou nada (`memory update failed: :invalid_json`); a conversa B "acertou" por coincidência. Causa: `google/gemini-3.8-flash` com `response_format: json_object` devolvia JSON truncado (3/6 falhas com max_tokens 300; ~4/8 mesmo com 1500 e `reasoning.enabled=false`). `openai/gpt-6-luna` acertou 8/8 (~2,6 s). Padrão de `MEMORY_MODEL` trocado para gpt-6-luna (desvio do plano, documentado em decisions.md). Saída inválida agora é logada (300 chars).
+- T06: frontend não renderiza markdown; o texto do cenário 1 mostrou `**…**` cru. Prompt passou a exigir texto simples.
+- T05: `String.to_existing_atom/1` no despacho das tools falhava quando `Orchestrators` ainda não estava carregado (só apareceu nos testes; release carrega tudo no boot). Trocado por mapa explícito nome → função.
+- T05: catálogo não tem jaqueta jeans (só p07 couro); a Doris respondeu corretamente que não encontrou, mas não ofereceu a de couro como alternativa. Resolvido na T06 (prompt).
+- T01: release falhou com `GLIBC_2.38 not found` (imagem `elixir:1.18` é Debian trixie; runtime era bookworm). Corrigido usando `debian:trixie-slim`.
+- T01: `prod.exs` gerado com `force_ssl` redirecionava `/health` (301). Removido: o agente só é acessado via HTTP na rede interna do compose.
+- `.env` sem chave no início; usuário preencheu antes da T02.
+- T02: `gemini-3.8-flash` com tools retornou 402 ("You requested up to 65536 tokens, but can only afford 10666"): sem `max_tokens` a OpenRouter reserva o máximo do modelo contra o limite de crédito da chave. Resolvido com `max_tokens` explícito (`LLM_MAX_TOKENS`, padrão 2048).
+- T02: no adaptador de teste do Plug, `chunk/2` devolve conn nova; o emissor do controller guarda a conn mais recente.
