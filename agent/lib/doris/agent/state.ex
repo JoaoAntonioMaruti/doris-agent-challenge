@@ -24,7 +24,10 @@ defmodule Doris.Agent.State do
     feedback_seq: 0,
     shown: MapSet.new(),
     extra_messages: [],
-    executions: []
+    executions: [],
+    # persistence callbacks, called during the turn (see Doris.Agent.Runner)
+    on_executions: &__MODULE__.noop/1,
+    on_messages: &__MODULE__.noop/1
   ]
 
   def new(%ChatRequest{} = req, emit, opts \\ []) do
@@ -38,6 +41,9 @@ defmodule Doris.Agent.State do
       deadline: System.monotonic_time(:millisecond) + budget_ms
     }
   end
+
+  @doc false
+  def noop(_), do: :ok
 
   def remaining_ms(%__MODULE__{deadline: d}), do: d - System.monotonic_time(:millisecond)
 

@@ -63,3 +63,8 @@
 - Idempotência: `source_key = "facts-v1:" <> sha256(fato normalizado)`, `ON CONFLICT DO NOTHING`; `pg_advisory_xact_lock` por usuário serializa escritas concorrentes.
 - Degradação: qualquer falha (extração, embedding, banco) é logada e o turno segue com v1; `user_preferences` não é tocada. Boot com `MEMORY_MODE=v2` sem extensão/tabela falha cedo (`Doris.Application`).
 - Limite conhecido: a v1 guarda só uma `notes` (sobrescrita). Por isso v2 ganha em fatos acumulados (m3). Não há deduplicação semântica (fatos parecidos com texto diferente viram linhas distintas) nem expiração.
+
+## T11 — Persistência durante o turno
+- A mensagem do usuário é gravada antes do loop (depois de ler o contexto anterior). Cada execução de tool é gravada assim que termina (`on_executions`), e cada lote assistant+tool results é gravado numa transação (`on_messages`), assim como a resposta final.
+- Um crash no meio do turno preserva a mensagem, os pares completos e a allowlist (IDs de garment/try-on já criados). Um lote incompleto não entra, então o contexto nunca tem tool_call sem resultado.
+- Custo: algumas transações pequenas a mais por turno (uma por tool call e uma por iteração).

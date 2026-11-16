@@ -4,8 +4,14 @@ defmodule Doris.Agent.Runner do
   until the model answers with text, the iteration cap is hit or the deadline passes.
 
   `emit` is a 1-arity function receiving encoded SSE events (text and feedback).
-  Returns `{:ok, turn}` with the messages produced in this turn (for persistence) or
-  `{:error, message}` when the model could not be reached at all.
+  Returns `{:ok, turn}` with the messages produced in this turn or `{:error, message}` when
+  the model could not be reached at all.
+
+  Persistence happens during the turn, through the state callbacks: `on_executions` after
+  every tool call (keeps the id allowlist even if the turn crashes later) and `on_messages`
+  for each assistant+tool-results batch and for the final answer. A batch is atomic, so
+  the stored context never has a tool_call without its result. The user message is
+  stored by the caller before the loop starts.
   """
   require Logger
   alias Doris.{ChatRequest, SSE}
@@ -45,6 +51,7 @@ defmodule Doris.Agent.Runner do
           assistant = assistant_message(message, calls)
           {extra, state} = {state.extra_messages, %{state | extra_messages: []}}
           new = [assistant | results] ++ extra
+          state.on_messages.(new)
           loop(context ++ new, turn ++ new, state, iteration + 1, seen)
 
         {:ok, %{"content" => text}} when is_binary(text) and text != "" ->
@@ -64,8 +71,10 @@ defmodule Doris.Agent.Runner do
   end
 
   defp finish(turn, state, text) do
+    final = %{role: "assistant", content: text}
+    state.on_messages.([final])
     state.emit.(SSE.text(text))
-    {:ok, %{messages: turn ++ [%{role: "assistant", content: text}], state: state}}
+    {:ok, %{messages: turn ++ [final], state: state}}
   end
 
   # Every tool_call gets exactly one tool message with the same id, in order.
@@ -107,6 +116,7 @@ defmodule Doris.Agent.Runner do
       |> Enum.with_index(1)
       |> Enum.map(fn {e, n} -> Map.put(e, :tool_call_id, "#{tool_call_id}##{n}") end)
 
+    state.on_executions.(executions)
     %{state | executions: state.executions ++ executions}
   end
 

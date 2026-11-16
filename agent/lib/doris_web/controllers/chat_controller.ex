@@ -58,27 +58,38 @@ defmodule DorisWeb.ChatController do
         Memory.update(req.user_id, %{user_text: text, conversation_id: req.conversation_id})
       end)
 
+    # read the context first, then store the user message: everything after this point is
+    # persisted as it happens, so a crash mid-turn keeps the message, tool calls and ids.
+    history = History.context(req.conversation_id)
+
+    {:ok, :ok} =
+      History.append_messages(req.conversation_id, [%{role: "user", content: req.content}])
+
     state =
       req
       |> State.new(emit)
       |> Map.put(:avoid_colors, memory.avoid_colors)
       |> History.allowlist(req.conversation_id)
+      |> Map.merge(persistence(req.conversation_id))
 
-    history = History.context(req.conversation_id)
     result = Runner.run(req, emit, state: state, history: history, memory: memory.prompt)
     await_memory(extraction, req.user_id)
 
     case result do
-      {:ok, %{messages: messages, state: state}} ->
-        {:ok, :ok} = History.save_turn(req.conversation_id, messages, state.executions)
-        :ok
-
-      {:error, message} ->
-        {:ok, :ok} =
-          History.save_turn(req.conversation_id, [%{role: "user", content: req.content}], [])
-
-        {:error, message}
+      {:ok, _turn} -> :ok
+      {:error, message} -> {:error, message}
     end
+  end
+
+  defp persistence(conversation_id) do
+    %{
+      on_executions: fn executions ->
+        {:ok, :ok} = History.record_executions(conversation_id, executions)
+      end,
+      on_messages: fn messages ->
+        {:ok, :ok} = History.append_messages(conversation_id, messages)
+      end
+    }
   end
 
   # A memory failure never breaks the chat; it is logged and the previous profile stays.

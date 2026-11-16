@@ -68,3 +68,7 @@ docker compose --profile test run --rm agent-test mix run --no-start evals/run.e
 - `mix format --check-formatted`: ok. `mix compile --warnings-as-errors --force`: ok. `mix test` com `ecto.drop` antes: 45 tests, 0 failures.
 - Banco do runtime: migrations `20261115000001`, `…02`, `…03` aplicadas. `/health` → 200.
 - `git diff main` fora de `agent/`: só `docker-compose.yml` (linha removida: `build: ./agent`, substituída por build com `target: runtime`).
+
+## T11
+- `agent-test`: 47 tests, 0 failures. `TurnRecoveryTest`: (1) LLM estoura depois do try-on → evento `error` + `[DONE]`; contexto salvo `user, assistant, tool, assistant, tool`; allowlist com p01, g-p01, t-1. (2) crash no 2º passo e novo turno → modelo recebe `system, user, assistant, tool, user`.
+- E2E `evals/scenarios.json` (MEMORY_MODE=v2, padrão): 6/6, p50 7,6 s, p95 27,8 s; conversa do s5 com 12 mensagens em ordem.

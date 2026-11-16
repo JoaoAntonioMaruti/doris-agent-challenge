@@ -5,7 +5,8 @@ defmodule Doris.History do
     * `open/3` claims a conversation for a user; another user reusing the id is rejected.
     * `context/1` rebuilds the model context without splitting tool_call/tool pairs.
     * `allowlist/2` rebuilds the ids a conversation may use from recorded tool results.
-    * `save_turn/3` stores the turn's messages and tool executions in one transaction.
+    * `append_messages/2` and `record_executions/2` persist the turn while it runs
+      (both built on `save_turn/3`, one transaction per batch).
   """
   import Ecto.Query
   alias Doris.Repo
@@ -80,8 +81,18 @@ defmodule Doris.History do
 
   defp remember(_execution, state), do: state
 
+  @doc "Appends messages (one atomic batch, e.g. an assistant tool_calls message and its results)."
+  def append_messages(_conversation_id, []), do: {:ok, :ok}
+  def append_messages(conversation_id, messages), do: save_turn(conversation_id, messages, [])
+
+  @doc "Records proxy calls as soon as they happen (idempotent by tool_call_id)."
+  def record_executions(_conversation_id, []), do: {:ok, :ok}
+
+  def record_executions(conversation_id, executions),
+    do: save_turn(conversation_id, [], executions)
+
   @doc """
-  Stores the turn atomically. `messages` are model-format maps (atom or string keys);
+  Stores messages and executions atomically. `messages` are model-format maps (atom or string keys);
   `executions` are the proxy calls recorded during the turn.
   """
   def save_turn(conversation_id, messages, executions) do

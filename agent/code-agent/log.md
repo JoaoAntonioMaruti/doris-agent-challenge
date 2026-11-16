@@ -16,6 +16,10 @@
 | T08 | Runner E2E e cenários adversariais | Concluída | 2026-11-15 21:00:38 -03:00 | 2026-11-15 21:15:17 -03:00 | 41 tests, 0 failures; `evals/run.exs` via proxy real: cenários 6/6 em 2 rodadas (p50 5,8 s / p95 32,0 s na última, 11 turnos); falhas 6/6 após corrigir asserção do f3 (1ª rodada 5/6) — `evals/reports/*-latest.md` | d2a1d70 |
 | T09 | Memória semântica v2 (opcional) | Concluída | 2026-11-15 21:15:20 -03:00 | 2026-11-15 21:24:39 -03:00 | 45 tests, 0 failures; dimensão 1536 confirmada na OpenRouter; `evals/memory.json` v1 2/3 (m3: nota sobrescrita, esqueceu "bicicleta") × v2 3/3 (recupera bicicleta + alergia a lã); falha de embedding degrada para v1 (teste) | 6c1fb6a |
 | T10 | Documentação de entrega | Concluída | 2026-11-15 21:24:44 -03:00 | 2026-11-15 21:25:47 -03:00 | README de entrega; `mix format --check-formatted` ok; `compile --warnings-as-errors` ok; 45 tests, 0 failures (banco de teste recriado); 3 migrations aplicadas; `/health` 200; fora de `agent/` só `docker-compose.yml` (serviço `agent` + `db`, `agent-test`, `proxy-faults`, `agent-eval`) | 49b86b6 |
+| T11 | Histórico persistido durante o turno | Concluída | 2026-11-15 22:02:12 -03:00 | 2026-11-15 22:05:52 -03:00 | 47 tests, 0 failures (`TurnRecoveryTest`: exceção após try-on mantém mensagem do usuário, pares assistant/tool e allowlist p01/g-p01/t-1; turno seguinte vê o contexto); E2E cenários 6/6 com MEMORY_MODE=v2; s5 persistido em ordem (12 mensagens) | — |
+| T12 | Timeout do LLM compatível com o orçamento | Pendente | — | — | — | — |
+| T13 | Memória com Task.Supervisor e retry automático | Pendente | — | — | — | — |
+| T14 | Sem retry em tools com efeito colateral | Pendente | — | — | — | — |
 
 ## Ocorrências
 - T09: usuário indicou `~/Developer/poc_embedding` como referência; seguido o padrão (pgvector Ecto type, `Postgrex.Types`, validação de dimensão, `cosine_distance`), com o endpoint `/embeddings` da OpenRouter.
