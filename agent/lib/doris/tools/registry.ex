@@ -54,7 +54,13 @@ defmodule Doris.Tools.Registry do
     }
   }
 
+  # Calling these twice has a visible effect (another try-on, another card in the chat).
+  @side_effects ["tryon", "show_artifact"]
+
   def names, do: Map.keys(@tools)
+
+  @doc "True for tools that must not be repeated when the first call's effect is unknown."
+  def side_effect?(name), do: name in @side_effects
 
   @doc "OpenAI-style JSON schema for a tool's arguments."
   def schema(name) do

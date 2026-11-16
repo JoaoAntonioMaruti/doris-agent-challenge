@@ -1,18 +1,18 @@
 {
-  "started_at": "2026-11-16T01:03:28.749192Z",
+  "started_at": "2026-11-16T01:26:34.649647Z",
   "target": "http://proxy:3000",
   "summary": {
     "total": 6,
     "failed": 0,
     "turns": 11,
     "passed": 6,
-    "p50_ms": 7556,
-    "p95_ms": 27846
+    "p50_ms": 7282,
+    "p95_ms": 27399
   },
   "memory_mode": "v1 (padrão do agente)",
   "model": "openai/gpt-6-luna (padrão do agente)",
   "suite": "scenarios",
-  "finished_at": "2026-11-16T01:05:40.288224Z",
+  "finished_at": "2026-11-16T01:28:40.184337Z",
   "scenarios": [
     {
       "id": "s1_camisa_linho",
@@ -22,14 +22,14 @@
         {
           "message": "Me acha uma camisa de linho branca até R$300",
           "user": "u_ana",
-          "text": "Encontrei a Camisa de linho branca, do Ateliê Maré, por R$ 249,90 — dentro do seu orçamento. Também gerei uma prova virtual para você ver como fica.",
+          "text": "Encontrei a Camisa de linho branca, do Ateliê Maré, por R$ 249,90 — dentro do seu orçamento. Também gerei um try-on para você ver como fica.",
           "errors": [],
-          "conversation_id": "eval-s1_camisa_linho-a-1794791008",
+          "conversation_id": "eval-s1_camisa_linho-a-1794792394",
           "tool_calls": [
             {
               "status": 200,
               "request": {
-                "limit": 8,
+                "limit": 10,
                 "query": "camisa linho branca"
               },
               "tool": "search_by_text",
@@ -76,7 +76,7 @@
             }
           ],
           "failures": [],
-          "latency_ms": 20758,
+          "latency_ms": 20302,
           "artifacts": [
             {
               "currency_symbol": "R$",
@@ -125,11 +125,11 @@
             "done"
           ],
           "outcome": "done",
-          "proxy_duration_ms": 20392
+          "proxy_duration_ms": 19943
         }
       ],
       "failures": [],
-      "latency_ms": 20758
+      "latency_ms": 20302
     },
     {
       "id": "s2_casamento_praia",
@@ -139,15 +139,15 @@
         {
           "message": "Tenho um casamento na praia sábado, o que eu visto?",
           "user": "u_bruno",
-          "text": "Para um casamento na praia, eu iria de camisa de linho branca com calça de alfaiataria bege: leve, elegante e adequada para a ocasião. Mostrei a Camisa de linho branca por R$ 249,90 e a Calça de alfaiataria bege por R$ 279,00; fiz também um try-on da camisa.",
+          "text": "Eu iria de camisa de linho branca com calça de alfaiataria bege, uma combinação leve e elegante para casamento na praia. Se quiser um toque mais arrumado, acrescente o blazer de linho off-white; a camisa custa R$ 249,90, a calça R$ 279 e o blazer R$ 520. Fiz um try-on da camisa para você conferir.",
           "errors": [],
-          "conversation_id": "eval-s2_casamento_praia-a-1794791008",
+          "conversation_id": "eval-s2_casamento_praia-a-1794792394",
           "tool_calls": [
             {
               "status": 200,
               "request": {
                 "limit": 6,
-                "query": "camisa linho masculina clara"
+                "query": "camisa linho casamento praia"
               },
               "tool": "search_by_text",
               "error_code": null
@@ -156,7 +156,7 @@
               "status": 200,
               "request": {
                 "limit": 6,
-                "query": "calça masculina linho bege"
+                "query": "calça alfaiataria leve casamento praia"
               },
               "tool": "search_by_text",
               "error_code": null
@@ -165,7 +165,16 @@
               "status": 200,
               "request": {
                 "limit": 6,
-                "query": "sapato masculino mocassim"
+                "query": "mocassim casual casamento praia"
+              },
+              "tool": "search_by_text",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "limit": 6,
+                "query": "blazer linho casamento praia"
               },
               "tool": "search_by_text",
               "error_code": null
@@ -184,6 +193,15 @@
               "request": {
                 "type": "PRODUCT",
                 "value": "p06"
+              },
+              "tool": "show_artifact",
+              "error_code": null
+            },
+            {
+              "status": 200,
+              "request": {
+                "type": "PRODUCT",
+                "value": "p10"
               },
               "tool": "show_artifact",
               "error_code": null
@@ -220,7 +238,7 @@
             }
           ],
           "failures": [],
-          "latency_ms": 27090,
+          "latency_ms": 27399,
           "artifacts": [
             {
               "currency_symbol": "R$",
@@ -260,6 +278,24 @@
               "url": "https://loja.exemplo/p06"
             },
             {
+              "currency_symbol": "R$",
+              "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/products/p10.jpg",
+              "item_id": "p10",
+              "kind": "PRODUCT",
+              "name": "Blazer de linho off-white",
+              "price": 520.0,
+              "store": "Casa Brisa",
+              "tags": [
+                "blazer",
+                "linho",
+                "off-white",
+                "casamento",
+                "praia",
+                "unissex"
+              ],
+              "url": "https://loja.exemplo/p10"
+            },
+            {
               "garment_ids": [
                 "62946f59-f0b2-56a5-bed3-a95db45ce195"
               ],
@@ -287,11 +323,11 @@
             "done"
           ],
           "outcome": "done",
-          "proxy_duration_ms": 27064
+          "proxy_duration_ms": 27375
         }
       ],
       "failures": [],
-      "latency_ms": 27090
+      "latency_ms": 27399
     },
     {
       "id": "s3_ultimo_look",
@@ -301,14 +337,14 @@
         {
           "message": "O que você acha do meu último look?",
           "user": "u_carla",
-          "text": "Carla, achei seu vestido lindo e cheio de personalidade! A estampa colorida e a cintura marcada deixam o look ótimo para um brunch; o scarpin preto dá um toque elegante. Para um clima mais descontraído, uma sandália rasteira também combinaria super bem.",
+          "text": "Carla, seu último look está cheio de personalidade! O vestido estampado e o cinto marcam bem a silhueta; os scarpins pretos deixam o visual mais elegante. Para um brunch, ficou alegre e arrumado na medida.",
           "errors": [],
-          "conversation_id": "eval-s3_ultimo_look-a-1794791008",
+          "conversation_id": "eval-s3_ultimo_look-a-1794792394",
           "tool_calls": [
             {
               "status": 200,
               "request": {
-                "limit": 1
+                "limit": 5
               },
               "tool": "looks",
               "error_code": null
@@ -324,7 +360,7 @@
             }
           ],
           "failures": [],
-          "latency_ms": 7556,
+          "latency_ms": 7282,
           "artifacts": [
             {
               "garment_ids": [
@@ -348,11 +384,11 @@
             "done"
           ],
           "outcome": "done",
-          "proxy_duration_ms": 7508
+          "proxy_duration_ms": 7258
         }
       ],
       "failures": [],
-      "latency_ms": 7556
+      "latency_ms": 7282
     },
     {
       "id": "s4_memoria",
@@ -361,30 +397,30 @@
       "turns": [
         {
           "message": "Odeio amarelo, visto M e curto estilo minimalista.",
-          "user": "u_ana__eval1794791008",
-          "text": "Combinado, Ana: vou evitar amarelo e priorizar peças minimalistas no tamanho M. Quer montar um look ou buscar alguma peça?",
+          "user": "u_ana__eval1794792394",
+          "text": "Anotado, Ana: vou evitar amarelo, considerar tamanho M e priorizar peças minimalistas. Quer buscar uma peça ou montar um look?",
           "errors": [],
-          "conversation_id": "eval-s4_memoria-a-1794791008",
+          "conversation_id": "eval-s4_memoria-a-1794792394",
           "tool_calls": [],
           "failures": [],
-          "latency_ms": 4572,
+          "latency_ms": 5035,
           "artifacts": [],
           "feedback_states": [],
           "outcome": "done",
-          "proxy_duration_ms": 4546
+          "proxy_duration_ms": 5012
         },
         {
           "message": "Me sugere algo pra um jantar",
-          "user": "u_ana__eval1794791008",
-          "text": "Para o jantar, sugiro o vestido midi preto minimalista, de linhas elegantes e fáceis de complementar com acessórios discretos. Ele custa R$ 389, e já mostrei uma prova virtual.",
+          "user": "u_ana__eval1794792394",
+          "text": "Para o jantar, sugiro o vestido midi preto minimalista, de linhas elegantes e fáceis de combinar. Ele custa R$ 389,00 e já deixei uma prova virtual para você conferir.",
           "errors": [],
-          "conversation_id": "eval-s4_memoria-b-1794791008",
+          "conversation_id": "eval-s4_memoria-b-1794792394",
           "tool_calls": [
             {
               "status": 200,
               "request": {
                 "limit": 6,
-                "query": "vestido jantar minimalista"
+                "query": "blusa minimalista"
               },
               "tool": "search_by_text",
               "error_code": null
@@ -393,7 +429,7 @@
               "status": 200,
               "request": {
                 "limit": 6,
-                "query": "sapato feminino elegante"
+                "query": "calça alfaiataria"
               },
               "tool": "search_by_text",
               "error_code": null
@@ -402,7 +438,7 @@
               "status": 200,
               "request": {
                 "limit": 6,
-                "query": "bolsa minimalista"
+                "query": "sapato feminino"
               },
               "tool": "search_by_text",
               "error_code": null
@@ -431,7 +467,7 @@
               "request": {
                 "avatar_pose": "NORMAL",
                 "garment_ids": [
-                  "f18fe91d-e930-562d-8c90-05dec75f426d"
+                  "5fb9cde0-d9ca-52c7-9065-d58d6cc12f19"
                 ]
               },
               "tool": "tryon",
@@ -441,14 +477,14 @@
               "status": 200,
               "request": {
                 "type": "TRYON_CARD",
-                "value": "1ebad1b8-7847-50e2-9f1d-aadb8cb58073"
+                "value": "d4c1b688-0c60-53ed-9f6f-f821511b8c69"
               },
               "tool": "show_artifact",
               "error_code": null
             }
           ],
           "failures": [],
-          "latency_ms": 27846,
+          "latency_ms": 26793,
           "artifacts": [
             {
               "currency_symbol": "R$",
@@ -471,7 +507,7 @@
             },
             {
               "garment_ids": [
-                "f18fe91d-e930-562d-8c90-05dec75f426d"
+                "5fb9cde0-d9ca-52c7-9065-d58d6cc12f19"
               ],
               "image_url": "https://raw.githubusercontent.com/dorisopensource/doris-agent-challenge/main/seed-images/tryons/u_ana/p05.jpg",
               "item_ids": [
@@ -487,7 +523,7 @@
                 "preto",
                 "vestido"
               ],
-              "tryon_id": "1ebad1b8-7847-50e2-9f1d-aadb8cb58073"
+              "tryon_id": "d4c1b688-0c60-53ed-9f6f-f821511b8c69"
             }
           ],
           "feedback_states": [
@@ -497,39 +533,39 @@
             "done"
           ],
           "outcome": "done",
-          "proxy_duration_ms": 27824
+          "proxy_duration_ms": 26768
         },
         {
           "message": "Que tamanho eu visto e qual cor eu evito?",
-          "user": "u_ana__eval1794791008",
+          "user": "u_ana__eval1794792394",
           "text": "Você veste tamanho M e evita amarelo.",
           "errors": [],
-          "conversation_id": "eval-s4_memoria-c-1794791008",
+          "conversation_id": "eval-s4_memoria-c-1794792394",
           "tool_calls": [],
           "failures": [],
-          "latency_ms": 3764,
+          "latency_ms": 3417,
           "artifacts": [],
           "feedback_states": [],
           "outcome": "done",
-          "proxy_duration_ms": 3738
+          "proxy_duration_ms": 3395
         },
         {
           "message": "Que tamanho eu visto e qual cor eu evito?",
-          "user": "u_ana__other1794791008",
-          "text": "Ainda não tenho essa informação, Ana. Se você me disser seu tamanho e as cores que prefere evitar, levo isso em conta nas próximas sugestões.",
+          "user": "u_ana__other1794792394",
+          "text": "Ainda não tenho essa informação, Ana. Não sei seu tamanho nem qual cor você evita; se me contar, posso levar isso em conta nas próximas sugestões.",
           "errors": [],
-          "conversation_id": "eval-s4_memoria-d-1794791008",
+          "conversation_id": "eval-s4_memoria-d-1794792394",
           "tool_calls": [],
           "failures": [],
-          "latency_ms": 2690,
+          "latency_ms": 2609,
           "artifacts": [],
           "feedback_states": [],
           "outcome": "done",
-          "proxy_duration_ms": 2655
+          "proxy_duration_ms": 2586
         }
       ],
       "failures": [],
-      "latency_ms": 38872
+      "latency_ms": 37854
     },
     {
       "id": "s5_jaquetas",
@@ -539,20 +575,10 @@
         {
           "message": "Tem jaqueta jeans?",
           "user": "u_ana",
-          "text": "Não encontrei jaqueta jeans no catálogo nem no seu guarda-roupa. A alternativa mais próxima é a jaqueta de couro preta, por R$ 899,00.",
+          "text": "Não encontrei jaqueta jeans no catálogo. A opção mais próxima é a Jaqueta de couro preta, por R$ 899.00.",
           "errors": [],
-          "conversation_id": "eval-s5_jaquetas-a-1794791008",
+          "conversation_id": "eval-s5_jaquetas-a-1794792394",
           "tool_calls": [
-            {
-              "status": 200,
-              "request": {
-                "garment_types": [
-                  "OUTERWEAR"
-                ]
-              },
-              "tool": "wardrobe",
-              "error_code": null
-            },
             {
               "status": 200,
               "request": {
@@ -573,7 +599,7 @@
             }
           ],
           "failures": [],
-          "latency_ms": 13403,
+          "latency_ms": 9296,
           "artifacts": [
             {
               "currency_symbol": "R$",
@@ -599,14 +625,14 @@
             "done"
           ],
           "outcome": "done",
-          "proxy_duration_ms": 13379
+          "proxy_duration_ms": 9269
         },
         {
           "message": "Quero provar a jaqueta de couro preta",
           "user": "u_ana",
-          "text": "Aqui está a jaqueta de couro preta da Couraça, por R$ 899,00, no seu try-on.",
+          "text": "Pronto, Ana! Aqui está o try-on da Jaqueta de couro preta, por R$ 899,00.",
           "errors": [],
-          "conversation_id": "eval-s5_jaquetas-a-1794791008",
+          "conversation_id": "eval-s5_jaquetas-a-1794792394",
           "tool_calls": [
             {
               "status": 200,
@@ -640,7 +666,7 @@
             }
           ],
           "failures": [],
-          "latency_ms": 18577,
+          "latency_ms": 17570,
           "artifacts": [
             {
               "garment_ids": [
@@ -667,11 +693,11 @@
             "done"
           ],
           "outcome": "done",
-          "proxy_duration_ms": 18565
+          "proxy_duration_ms": 17558
         }
       ],
       "failures": [],
-      "latency_ms": 31980
+      "latency_ms": 26866
     },
     {
       "id": "s6_conversa",
@@ -683,32 +709,32 @@
           "user": "u_bruno",
           "text": "Oi, Bruno! Como posso te ajudar com moda hoje?",
           "errors": [],
-          "conversation_id": "eval-s6_conversa-a-1794791008",
+          "conversation_id": "eval-s6_conversa-a-1794792394",
           "tool_calls": [],
           "failures": [],
-          "latency_ms": 3107,
+          "latency_ms": 3022,
           "artifacts": [],
           "feedback_states": [],
           "outcome": "done",
-          "proxy_duration_ms": 3078
+          "proxy_duration_ms": 2951
         },
         {
           "message": "Qual a capital da França?",
           "user": "u_bruno",
-          "text": "A capital da França é Paris. Também posso ajudar com alguma dúvida de moda!",
+          "text": "A capital da França é Paris. Posso também te ajudar com alguma dúvida de moda!",
           "errors": [],
-          "conversation_id": "eval-s6_conversa-a-1794791008",
+          "conversation_id": "eval-s6_conversa-a-1794792394",
           "tool_calls": [],
           "failures": [],
-          "latency_ms": 2162,
+          "latency_ms": 2793,
           "artifacts": [],
           "feedback_states": [],
           "outcome": "done",
-          "proxy_duration_ms": 2111
+          "proxy_duration_ms": 2736
         }
       ],
       "failures": [],
-      "latency_ms": 5269
+      "latency_ms": 5815
     }
   ]
 }

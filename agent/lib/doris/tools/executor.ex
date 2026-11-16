@@ -2,6 +2,10 @@ defmodule Doris.Tools.Executor do
   @moduledoc """
   Calls proxy tools over HTTP. Validates arguments first, always sends `conversation_id`,
   unwraps the `{ok, data | error}` envelope and retries only errors marked `retryable`.
+
+  Tools with side effects (`tryon`, `show_artifact`) are retried only when the request
+  provably never reached the proxy (connection refused / DNS failure). A 5xx or a timeout
+  leaves the effect unknown, so they are not repeated; the orchestrator falls back instead.
   """
   require Logger
   alias Doris.Tools.Registry
@@ -28,7 +32,7 @@ defmodule Doris.Tools.Executor do
   defp attempt(tool, body, n, max, deadline) do
     case post(tool, body) do
       {:error, %{retryable: true} = error} when n < max ->
-        if time_left?(deadline) do
+        if time_left?(deadline) and safe_to_retry?(tool, error) do
           Logger.warning("tool #{tool} failed (#{error.code}), retry #{n + 1}/#{max}")
           Process.sleep(backoff_ms(n))
           attempt(tool, body, n + 1, max, deadline)
@@ -78,8 +82,19 @@ defmodule Doris.Tools.Executor do
 
       {:error, exception} ->
         {:error,
-         %{code: "transport_error", message: Exception.message(exception), retryable: true}}
+         %{
+           code: "transport_error",
+           message: Exception.message(exception),
+           retryable: true,
+           reason: Map.get(exception, :reason)
+         }}
     end
+  end
+
+  @not_sent [:econnrefused, :nxdomain]
+
+  defp safe_to_retry?(tool, error) do
+    not Registry.side_effect?(tool) or Map.get(error, :reason) in @not_sent
   end
 
   defp time_left?(nil), do: true

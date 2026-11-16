@@ -63,6 +63,11 @@ Postgres (pgvector/pg17): users · conversations · messages · tool_executions 
   transporte. **Desvio do plano:** a memória usa `gpt-6-luna`, porque o gemini truncou o JSON em ~50% das
   extrações medidas. Os dois são configuráveis por env. `max_tokens` é sempre explícito, porque sem ele a
   OpenRouter reserva o máximo do modelo e o limite de crédito da chave devolve 402.
+- **Recuperação de falhas** (T11–T14):
+  - O turno é gravado enquanto roda: mensagem do usuário no início, cada tool na hora e cada par assistant+tools atômico. Um crash não perde IDs nem histórico.
+  - Cada chamada ao LLM tem até 20 s, limitada pelo tempo restante do turno, o que deixa espaço para o fallback.
+  - A extração de memória roda em `Task.Supervisor` com 3 tentativas. Se demorar, continua em background; não sobrevive a restart.
+  - `tryon` e `show_artifact` não são repetidos quando o efeito é incerto.
 - **Filtro de cor por palavras e tons** (amarelo → mostarda/ocre…), porque a busca não devolve tags. É simples e
   previsível, mas é uma lista fixa.
 - **E2E em Elixir dentro do container**, falando só com `POST /chat` do proxy. A suíte de falhas usa uma segunda
@@ -92,6 +97,8 @@ roteirizado; não dá para forçá-los de forma determinística com o modelo rea
   visão, só para opinar.
 - **Avaliação automática da "coerência" do look:** o E2E checa tools, cards, preço e cores, mas não o gosto.
 - **Memória v2:** sem deduplicação semântica, sem expiração e sem índice vetorial (poucas linhas por usuário).
+- **Banco indisponível:** o turno falha com erro. Degradar sem persistência foi adiado, por risco de
+  consistência no histórico e na allowlist.
 - **Observabilidade** (tracing/métricas por turno): por enquanto só logs e `tool_executions`.
 
 ## Próximos passos

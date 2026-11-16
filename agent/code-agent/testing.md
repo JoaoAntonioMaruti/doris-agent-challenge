@@ -84,3 +84,8 @@ docker compose --profile test run --rm agent-test mix run --no-start evals/run.e
 ## Ajuste v2 — recall
 - `agent-test`: 59 tests, 0 failures (consulta sem semelhança devolve o fato recente do próprio usuário e nada para outro sufixo).
 - Real: conversa nova "O que você sabe sobre mim?" → `memory recall … facts=1` → "Sei que você se chama Carla, mora em Belo Horizonte e gosta de festas."
+
+## T14
+- `agent-test`: 64 tests, 0 failures. `ExecutorTest`: tryon 503 retryable → 1 chamada; tryon timeout → 1; tryon econnrefused → 2 (sucesso); show_artifact 503 → 1; search 503 → 2.
+- E2E faults (proxy-faults): 7/7, incluindo f7 (`tryon` 503 retryable em p16 → 1 chamada a tryon, feedback `error`, card PRODUCT p16).
+- E2E cenários: 6/6, p50 7,3 s, p95 27,4 s (2ª rodada, após restart do proxy; ver ocorrência).

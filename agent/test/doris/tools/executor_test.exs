@@ -79,4 +79,63 @@ defmodule Doris.Tools.ExecutorTest do
     assert {:error, %{code: "invalid_arguments"}} =
              Executor.call("c1", "show_artifact", %{"type" => "BANNER", "value" => "x"})
   end
+
+  defp counting(fun) do
+    counter = :counters.new(1, [])
+
+    Req.Test.stub(Executor, fn conn ->
+      :counters.add(counter, 1, 1)
+      fun.(conn, :counters.get(counter, 1))
+    end)
+
+    counter
+  end
+
+  test "tryon with a retryable 5xx is not repeated (effect unknown)" do
+    counter = counting(fn conn, _ -> fail(conn, 503, "upstream_timeout", true) end)
+
+    assert {:error, %{code: "upstream_timeout"}} =
+             Executor.call("c1", "tryon", %{"garment_ids" => ["g1"]})
+
+    assert :counters.get(counter, 1) == 1
+  end
+
+  test "tryon timeout is not repeated" do
+    counter = counting(fn conn, _ -> Req.Test.transport_error(conn, :timeout) end)
+
+    assert {:error, %{reason: :timeout}} =
+             Executor.call("c1", "tryon", %{"garment_ids" => ["g1"]})
+
+    assert :counters.get(counter, 1) == 1
+  end
+
+  test "tryon is retried when the connection was refused (never sent)" do
+    counter =
+      counting(fn conn, n ->
+        if n == 1,
+          do: Req.Test.transport_error(conn, :econnrefused),
+          else: Req.Test.json(conn, %{"ok" => true, "data" => %{"tryon_id" => "t1"}})
+      end)
+
+    assert {:ok, %{"tryon_id" => "t1"}} = Executor.call("c1", "tryon", %{"garment_ids" => ["g1"]})
+    assert :counters.get(counter, 1) == 2
+  end
+
+  test "show_artifact with a retryable 5xx is not repeated" do
+    counter = counting(fn conn, _ -> fail(conn, 503, "upstream_timeout", true) end)
+    Executor.call("c1", "show_artifact", %{"type" => "PRODUCT", "value" => "p01"})
+    assert :counters.get(counter, 1) == 1
+  end
+
+  test "idempotent search is still retried on a retryable 5xx" do
+    counter =
+      counting(fn conn, n ->
+        if n == 1,
+          do: fail(conn, 503, "upstream_timeout", true),
+          else: Req.Test.json(conn, %{"ok" => true, "data" => %{"products" => []}})
+      end)
+
+    assert {:ok, _} = Executor.call("c1", "search_by_text", %{"query" => "x"})
+    assert :counters.get(counter, 1) == 2
+  end
 end

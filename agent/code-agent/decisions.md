@@ -81,3 +81,7 @@
 
 ## Ajuste v2 — recall com fatos recentes
 - Perguntas genéricas ficam longe de qualquer fato no espaço vetorial (medido: "O que você sabe sobre mim?" × "A pessoa gosta de festas." = 0,747; limite 0,65). O recall agora junta os top-3 semelhantes com os 2 fatos mais recentes do usuário (sem duplicar, máx. 5).
+
+## T14 — Retry por idempotência
+- `Registry.side_effect?/1`: `tryon` e `show_artifact` têm efeito visível. Para elas, o Executor só repete quando a requisição comprovadamente não saiu (`econnrefused`, `nxdomain`). 5xx retryable e timeout não repetem, porque o efeito é incerto; o orquestrador cai no card do produto. Ferramentas idempotentes (busca, garment_creation, looks, wardrobe, avatar) mantêm o retry de antes.
+- `:closed` ficou fora da lista (o plano citava), por não dar para saber se a requisição já tinha sido enviada.

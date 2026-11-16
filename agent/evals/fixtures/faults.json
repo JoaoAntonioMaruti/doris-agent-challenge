@@ -1,10 +1,60 @@
 {
   "rules": [
-    {"tool": "search_by_text", "match": {"query": "bermuda"}, "times": 1,
-     "effect": {"error": {"status": 503, "code": "upstream_timeout", "retryable": true}}},
-    {"tool": "tryon", "match": {"item_ids": "p07"},
-     "effect": {"error": {"status": 500, "code": "render_failed", "retryable": false}}},
-    {"tool": "search_by_text", "match": {"query": "smoking|fraque"}, "effect": "empty"},
-    {"tool": "search_by_text", "match": {"query": "kimono|quimono"}, "effect": {"delay_ms": 85000}}
+    {
+      "tool": "search_by_text",
+      "match": {
+        "query": "bermuda"
+      },
+      "times": 1,
+      "effect": {
+        "error": {
+          "status": 503,
+          "code": "upstream_timeout",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "tool": "tryon",
+      "match": {
+        "item_ids": "p07"
+      },
+      "effect": {
+        "error": {
+          "status": 500,
+          "code": "render_failed",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "tool": "search_by_text",
+      "match": {
+        "query": "smoking|fraque"
+      },
+      "effect": "empty"
+    },
+    {
+      "tool": "search_by_text",
+      "match": {
+        "query": "kimono|quimono"
+      },
+      "effect": {
+        "delay_ms": 85000
+      }
+    },
+    {
+      "tool": "tryon",
+      "match": {
+        "item_ids": "p16"
+      },
+      "effect": {
+        "error": {
+          "status": 503,
+          "code": "upstream_timeout",
+          "retryable": true
+        }
+      }
+    }
   ]
 }
