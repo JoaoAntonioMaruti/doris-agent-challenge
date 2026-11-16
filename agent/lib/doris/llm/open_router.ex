@@ -12,14 +12,41 @@ defmodule Doris.LLM.OpenRouter do
   (`"content"` and optionally `"tool_calls"`), or `{:error, reason}`.
 
   Options: `:tools`, `:model` (`:agent` | `:memory` | a model id), `:max_tokens`, `:response_format`,
-  `:reasoning` (OpenRouter reasoning config), `:receive_timeout`, `:purpose` (label for logs).
+  `:reasoning` (OpenRouter reasoning config), `:deadline` (monotonic ms; each model gets
+  `min(call timeout, time left)`, and the fallback is skipped when too little is left),
+  `:purpose` (label for logs).
   """
   def chat(messages, opts \\ []) do
     models = candidate_models(Keyword.get(opts, :model, :agent))
     try_models(models, messages, opts)
   end
 
+  # below this, a fallback attempt could not finish anyway
+  @min_attempt_ms 3_000
+
+  @doc """
+  Timeout for one model attempt: the per-call cap, limited by the time left before the
+  deadline. Returns `:no_time` when less than `#{@min_attempt_ms}` ms would be available.
+  """
+  def call_timeout(now_ms, deadline_ms, cap_ms) do
+    timeout = if deadline_ms, do: min(cap_ms, deadline_ms - now_ms), else: cap_ms
+    if timeout < @min_attempt_ms, do: :no_time, else: timeout
+  end
+
   defp try_models([model | rest], messages, opts) do
+    now = System.monotonic_time(:millisecond)
+
+    case call_timeout(now, Keyword.get(opts, :deadline), config(:call_timeout_ms)) do
+      :no_time ->
+        Logger.warning("llm skipped model=#{model} reason=no_time_left")
+        {:error, :no_time_left}
+
+      timeout ->
+        attempt(model, rest, messages, Keyword.put(opts, :timeout_ms, timeout))
+    end
+  end
+
+  defp attempt(model, rest, messages, opts) do
     case request(model, messages, opts) do
       {:ok, message} ->
         {:ok, message}
@@ -45,8 +72,7 @@ defmodule Doris.LLM.OpenRouter do
       |> put_optional(:response_format, Keyword.get(opts, :response_format))
       |> put_optional(:reasoning, Keyword.get(opts, :reasoning))
 
-    receive_timeout =
-      min(Keyword.get(opts, :receive_timeout, config(:receive_timeout)), config(:receive_timeout))
+    receive_timeout = Keyword.fetch!(opts, :timeout_ms)
 
     purpose = Keyword.get(opts, :purpose, "agent")
 
@@ -61,7 +87,7 @@ defmodule Doris.LLM.OpenRouter do
       Req.post(req(),
         url: "/chat/completions",
         json: body,
-        receive_timeout: max(receive_timeout, 1_000)
+        receive_timeout: receive_timeout
       )
 
     log_response(purpose, model, System.monotonic_time(:millisecond) - started, result)
@@ -121,7 +147,6 @@ defmodule Doris.LLM.OpenRouter do
     Req.new(
       base_url: config(:base_url),
       auth: {:bearer, config(:api_key) || ""},
-      receive_timeout: config(:receive_timeout),
       retry: false
     )
     |> Req.merge(Application.get_env(:doris, :openrouter_req_options, []))

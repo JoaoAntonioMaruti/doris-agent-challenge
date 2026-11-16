@@ -68,3 +68,8 @@
 - A mensagem do usuário é gravada antes do loop (depois de ler o contexto anterior). Cada execução de tool é gravada assim que termina (`on_executions`), e cada lote assistant+tool results é gravado numa transação (`on_messages`), assim como a resposta final.
 - Um crash no meio do turno preserva a mensagem, os pares completos e a allowlist (IDs de garment/try-on já criados). Um lote incompleto não entra, então o contexto nunca tem tool_call sem resultado.
 - Custo: algumas transações pequenas a mais por turno (uma por tool call e uma por iteração).
+
+## T12 — Timeout do LLM
+- Cada tentativa de modelo recebe `min(LLM_TIMEOUT_MS (20 s), tempo até o deadline)`. Antes eram 45 s fixos, e uma chamada lenta consumia o orçamento de 80 s sem dar chance ao fallback.
+- O Runner passa o `deadline` (monotônico), não um timeout. O fallback recalcula com o tempo restante e não é tentado com menos de 3 s (`{:error, :no_time_left}`): o turno fecha com texto de fallback ou com evento de erro se nada respondeu.
+- A extração de memória usa o mesmo teto de 20 s por tentativa (sem deadline de turno).

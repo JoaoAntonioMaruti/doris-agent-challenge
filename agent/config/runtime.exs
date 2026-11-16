@@ -28,7 +28,8 @@ config :doris, :openrouter,
   # explicit cap: without it OpenRouter reserves the model maximum and the key's credit limit rejects it (402)
   max_tokens: String.to_integer(System.get_env("LLM_MAX_TOKENS", "2048")),
   temperature: String.to_float(System.get_env("LLM_TEMPERATURE", "0.3")),
-  receive_timeout: 45_000
+  # per model attempt; the agent loop also caps it by the time left in the 80 s budget
+  call_timeout_ms: String.to_integer(System.get_env("LLM_TIMEOUT_MS", "20000"))
 
 memory_mode =
   case System.get_env("MEMORY_MODE", "v2") do

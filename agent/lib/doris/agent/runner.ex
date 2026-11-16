@@ -44,7 +44,7 @@ defmodule Doris.Agent.Runner do
     else
       case OpenRouter.chat(context,
              tools: Tools.definitions(),
-             receive_timeout: State.remaining_ms(state)
+             deadline: state.deadline
            ) do
         {:ok, %{"tool_calls" => [_ | _] = calls} = message} ->
           {results, state, seen} = run_calls(calls, state, seen)

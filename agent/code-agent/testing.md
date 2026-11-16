@@ -72,3 +72,7 @@ docker compose --profile test run --rm agent-test mix run --no-start evals/run.e
 ## T11
 - `agent-test`: 47 tests, 0 failures. `TurnRecoveryTest`: (1) LLM estoura depois do try-on → evento `error` + `[DONE]`; contexto salvo `user, assistant, tool, assistant, tool`; allowlist com p01, g-p01, t-1. (2) crash no 2º passo e novo turno → modelo recebe `system, user, assistant, tool, user`.
 - E2E `evals/scenarios.json` (MEMORY_MODE=v2, padrão): 6/6, p50 7,6 s, p95 27,8 s; conversa do s5 com 12 mensagens em ordem.
+
+## T12
+- `agent-test`: 53 tests, 0 failures. `OpenRouterTest`: `call_timeout/3` (teto, limitado pelo restante, `:no_time` abaixo de 3 s, sem deadline); `Req.Test.transport_error(:timeout)` no gpt-6-luna → chamada ao gemini-3.8-flash responde; deadline em 1 s → nenhuma chamada.
+- Real: logs `llm request … timeout_ms=20000` para `agent`, `memory.preferences` e `memory.facts`.
