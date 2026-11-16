@@ -136,7 +136,7 @@ Também errou, e precisei pegar:
 ## Início e fim
 
 - Início: 2026-11-15 20:31:12 -03:00
-- Fim: 2026-11-15 23:30:54 -03:00 (o núcleo, T01 a T10, ficou pronto às 21:25; depois vieram a recuperação de
+- Fim: 2026-11-15 23:46:36 -03:00 (o núcleo, T01 a T10, ficou pronto às 21:25; depois vieram a recuperação de
   falhas e os ajustes)
 
 ## Como rodar
