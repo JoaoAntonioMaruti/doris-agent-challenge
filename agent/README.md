@@ -10,6 +10,8 @@ Documentos de apoio, mais detalhados:
 
 ## Ideia e arquitetura
 
+![Arquitetura do agente da Doris](docs/architecture.png)
+
 **O LLM decide a intenção e escolhe entre candidatos; o código garante as regras.** O modelo nunca chama as tools
 do proxy diretamente. Ele vê 7 tools de alto nível, e cada uma é um pipeline determinístico em Elixir:
 
