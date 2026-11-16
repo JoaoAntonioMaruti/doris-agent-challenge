@@ -21,7 +21,7 @@ services:
       DATABASE_URL: ecto://postgres:postgres@db/doris
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:-dev-only-secret-key-base-not-used-for-cookies-0123456789abcdef}
       PHX_HOST: agent
-      MEMORY_MODE: ${MEMORY_MODE:-v1}
+      MEMORY_MODE: ${MEMORY_MODE:-v2}
     depends_on:
       db:
         condition: service_healthy
@@ -33,6 +33,8 @@ services:
 
   db:
     image: pgvector/pgvector:pg17
+    # published only for local inspection (DB UI); the agent uses the internal network
+    ports: ["127.0.0.1:${DB_PORT:-5433}:5432"]
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -93,7 +95,7 @@ services:
       DATABASE_URL: ecto://postgres:postgres@db/doris
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:-dev-only-secret-key-base-not-used-for-cookies-0123456789abcdef}
       PHX_HOST: agent-eval
-      MEMORY_MODE: ${MEMORY_MODE:-v1}
+      MEMORY_MODE: ${MEMORY_MODE:-v2}
     depends_on:
       db:
         condition: service_healthy

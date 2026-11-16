@@ -92,6 +92,7 @@ defmodule Doris.Memory.Structured do
 
     case OpenRouter.chat(messages,
            model: :memory,
+           purpose: "memory.preferences",
            max_tokens: 300,
            temperature: 0.0,
            response_format: %{type: "json_object"}

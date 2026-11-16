@@ -31,7 +31,7 @@ config :doris, :openrouter,
   receive_timeout: 45_000
 
 memory_mode =
-  case System.get_env("MEMORY_MODE", "v1") do
+  case System.get_env("MEMORY_MODE", "v2") do
     "v1" -> :v1
     "v2" -> :v2
     other -> raise "MEMORY_MODE must be v1 or v2, got: #{inspect(other)}"

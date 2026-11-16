@@ -25,7 +25,7 @@ config :doris, DorisWeb.Endpoint,
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  metadata: [:request_id, :user_id, :conversation_id]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

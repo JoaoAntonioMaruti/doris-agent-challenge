@@ -42,6 +42,24 @@ defmodule Doris.Tools.Executor do
   end
 
   defp post(tool, body) do
+    started = System.monotonic_time(:millisecond)
+    result = do_post(tool, body)
+    ms = System.monotonic_time(:millisecond) - started
+
+    case result do
+      {:ok, _} ->
+        Logger.info("tool call tool=#{tool} status=ok duration_ms=#{ms}")
+
+      {:error, e} ->
+        Logger.warning(
+          "tool call tool=#{tool} status=error code=#{e.code} retryable=#{e.retryable} duration_ms=#{ms}"
+        )
+    end
+
+    result
+  end
+
+  defp do_post(tool, body) do
     case Req.post(req(), url: "/tools/" <> tool, json: body) do
       {:ok, %{status: status, body: %{"ok" => true} = envelope}} when status in 200..299 ->
         {:ok, Map.get(envelope, "data") || %{}}

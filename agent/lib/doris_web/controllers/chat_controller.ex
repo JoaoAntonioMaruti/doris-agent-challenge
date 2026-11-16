@@ -46,6 +46,8 @@ defmodule DorisWeb.ChatController do
   end
 
   defp run_turn(req, emit) do
+    Logger.metadata(user_id: req.user_id, conversation_id: req.conversation_id)
+    Logger.info("turn start mode=#{Application.fetch_env!(:doris, :memory_mode)}")
     text = ChatRequest.text(req)
     memory = Memory.load(req.user_id, text)
 

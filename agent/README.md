@@ -41,10 +41,10 @@ Postgres (pgvector/pg17): users · conversations · messages · tool_executions 
 - **Histórico:** o agente guarda a conversa, já que o proxy só envia a mensagem atual. A janela de contexto sempre
   começa numa mensagem `user`, então nunca separa uma `tool_call` do seu resultado. Imagens em base64 viram
   placeholder no banco.
-- **Memória v1** (`MEMORY_MODE=v1`, padrão): `user_preferences` com tamanho, cores evitadas, estilos, orçamento e
+- **Memória v1** (`MEMORY_MODE=v1`): `user_preferences` com tamanho, cores evitadas, estilos, orçamento e
   notas. O LLM só propõe um *change set* em JSON; validação, merge e lock otimista ficam no código. As cores
   evitadas viram filtro rígido.
-- **Memória v2** (`MEMORY_MODE=v2`, opt-in): v1 mais fatos livres com embeddings (`text-embedding-3-small` via
+- **Memória v2** (`MEMORY_MODE=v2`, padrão): v1 mais fatos livres com embeddings (`text-embedding-3-small` via
   OpenRouter, 1536 dims, pgvector), top-3 do mesmo usuário por similaridade. As restrições continuam vindo da v1.
 
 ## Decisões e trade-offs
@@ -144,7 +144,7 @@ docker compose up --build            # frontend+proxy (:3000), agente, Postgres
 | Testes | `docker compose --profile test run --rm agent-test` |
 | E2E (6 cenários) | `docker compose --profile test run --rm agent-test mix run --no-start evals/run.exs evals/scenarios.json` |
 | E2E de falhas | `docker compose --profile eval up --build -d proxy-faults agent-eval` e depois `… evals/run.exs evals/faults.json` |
-| Memória v2 | `MEMORY_MODE=v2 docker compose up --build -d agent` (e `… evals/run.exs evals/memory.json` com `-e MEMORY_MODE=v2`) |
+| Memória só v1 | `MEMORY_MODE=v1 docker compose up --build -d agent` (padrão é v2) |
 
 Variáveis opcionais: `AGENT_MODEL`, `FALLBACK_MODEL`, `MEMORY_MODEL`, `EMBEDDING_MODEL`, `LLM_MAX_TOKENS`,
 `MEMORY_MODE` (`v1`|`v2`; outro valor impede o boot).

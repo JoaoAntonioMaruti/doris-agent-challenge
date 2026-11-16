@@ -23,9 +23,11 @@ defmodule Doris.Memory.Semantic do
 
     case recall(user_id, query_text) do
       {:ok, []} ->
+        Logger.info("memory recall user=#{user_id} facts=0")
         base
 
       {:ok, facts} ->
+        Logger.info("memory recall user=#{user_id} facts=#{length(facts)}")
         lines = Enum.map_join(facts, "\n", &"- #{&1}")
 
         %{
@@ -155,6 +157,7 @@ defmodule Doris.Memory.Semantic do
 
     case OpenRouter.chat(messages,
            model: :memory,
+           purpose: "memory.facts",
            max_tokens: 400,
            temperature: 0.0,
            response_format: %{type: "json_object"}

@@ -4,6 +4,7 @@ defmodule Doris.LLM.Embeddings do
   Validates the vector size so a provider change never silently corrupts the table.
   """
 
+  require Logger
   @dimensions 1536
 
   def dimensions, do: @dimensions
@@ -12,6 +13,24 @@ defmodule Doris.LLM.Embeddings do
   def embed([]), do: {:ok, []}
 
   def embed(texts) when is_list(texts) do
+    started = System.monotonic_time(:millisecond)
+    result = request(texts)
+    ms = System.monotonic_time(:millisecond) - started
+
+    case result do
+      {:ok, _} ->
+        Logger.info("embeddings response inputs=#{length(texts)} duration_ms=#{ms}")
+
+      {:error, reason} ->
+        Logger.warning(
+          "embeddings error inputs=#{length(texts)} duration_ms=#{ms} reason=#{inspect(reason)}"
+        )
+    end
+
+    result
+  end
+
+  defp request(texts) do
     config = Application.fetch_env!(:doris, :openrouter)
     model = Application.fetch_env!(:doris, :models) |> Keyword.fetch!(:embedding)
 
@@ -24,6 +43,8 @@ defmodule Doris.LLM.Embeddings do
         receive_timeout: 20_000,
         retry: false
       ] ++ Application.get_env(:doris, :openrouter_req_options, [])
+
+    Logger.info("embeddings request model=#{model} inputs=#{length(texts)}")
 
     case Req.post(options) do
       {:ok, %{status: 200, body: %{"data" => data}}} when length(data) == length(texts) ->

@@ -12,7 +12,7 @@ defmodule Doris.LLM.OpenRouter do
   (`"content"` and optionally `"tool_calls"`), or `{:error, reason}`.
 
   Options: `:tools`, `:model` (`:agent` | `:memory` | a model id), `:max_tokens`, `:response_format`,
-  `:reasoning` (OpenRouter reasoning config), `:receive_timeout`.
+  `:reasoning` (OpenRouter reasoning config), `:receive_timeout`, `:purpose` (label for logs).
   """
   def chat(messages, opts \\ []) do
     models = candidate_models(Keyword.get(opts, :model, :agent))
@@ -25,7 +25,7 @@ defmodule Doris.LLM.OpenRouter do
         {:ok, message}
 
       {:error, {:retryable, reason}} when rest != [] ->
-        Logger.warning("model #{model} failed (#{inspect(reason)}), trying #{hd(rest)}")
+        Logger.warning("llm fallback from=#{model} to=#{hd(rest)} reason=#{short(reason)}")
         try_models(rest, messages, opts)
 
       {:error, {_kind, reason}} ->
@@ -48,11 +48,25 @@ defmodule Doris.LLM.OpenRouter do
     receive_timeout =
       min(Keyword.get(opts, :receive_timeout, config(:receive_timeout)), config(:receive_timeout))
 
-    case Req.post(req(),
-           url: "/chat/completions",
-           json: body,
-           receive_timeout: max(receive_timeout, 1_000)
-         ) do
+    purpose = Keyword.get(opts, :purpose, "agent")
+
+    Logger.info(
+      "llm request purpose=#{purpose} model=#{model} messages=#{length(messages)} " <>
+        "tools=#{length(Keyword.get(opts, :tools) || [])} timeout_ms=#{receive_timeout}"
+    )
+
+    started = System.monotonic_time(:millisecond)
+
+    result =
+      Req.post(req(),
+        url: "/chat/completions",
+        json: body,
+        receive_timeout: max(receive_timeout, 1_000)
+      )
+
+    log_response(purpose, model, System.monotonic_time(:millisecond) - started, result)
+
+    case result do
       {:ok, %{status: 200, body: %{"choices" => [%{"message" => message} | _]}}} ->
         {:ok, message}
 
@@ -66,6 +80,33 @@ defmodule Doris.LLM.OpenRouter do
         {:error, {:retryable, exception}}
     end
   end
+
+  defp log_response(purpose, model, ms, {:ok, %{status: 200, body: body}}) do
+    message = get_in(body, ["choices", Access.at(0), "message"]) || %{}
+    usage = body["usage"] || %{}
+
+    Logger.info(
+      "llm response purpose=#{purpose} model=#{model} status=200 duration_ms=#{ms} " <>
+        "tool_calls=#{length(message["tool_calls"] || [])} " <>
+        "tokens_in=#{usage["prompt_tokens"]} tokens_out=#{usage["completion_tokens"]}"
+    )
+  end
+
+  defp log_response(purpose, model, ms, {:ok, %{status: status}}),
+    do:
+      Logger.warning(
+        "llm response purpose=#{purpose} model=#{model} status=#{status} duration_ms=#{ms}"
+      )
+
+  defp log_response(purpose, model, ms, {:error, exception}),
+    do:
+      Logger.warning(
+        "llm error purpose=#{purpose} model=#{model} duration_ms=#{ms} reason=#{short(exception)}"
+      )
+
+  defp short({:http, status, _}), do: "HTTP #{status}"
+  defp short(%{__exception__: true} = e), do: Exception.message(e)
+  defp short(other), do: inspect(other)
 
   defp candidate_models(:agent), do: Enum.uniq([model(:agent), model(:fallback)])
   defp candidate_models(role) when is_atom(role), do: [model(role)]
