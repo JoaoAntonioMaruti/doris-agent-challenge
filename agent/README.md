@@ -1,159 +1,142 @@
-# Agente da Doris (Elixir/Phoenix)
+# Agente da Doris
 
-Documentos de apoio, mais detalhados:
+Agente em Elixir/Phoenix que conversa com o proxy no formato OpenAI (SSE), busca peças, monta looks, gera
+try-on e lembra das preferências de cada pessoa entre conversas.
 
-- [`code-agent/plan.md`](code-agent/plan.md): plano executado e status.
-- [`code-agent/log.md`](code-agent/log.md): horário real de cada tarefa, evidência, SHA do commit e ocorrências.
-- [`code-agent/decisions.md`](code-agent/decisions.md): decisões por tarefa.
-- [`code-agent/testing.md`](code-agent/testing.md): o que foi testado e o resultado.
-- [`evals/reports/`](evals/reports/): relatórios E2E (`*-latest.md`).
+Se quiser os detalhes de cada passo, deixei tudo em `code-agent/`: o [plano](code-agent/plan.md), o
+[log com horários e commits](code-agent/log.md), as [decisões](code-agent/decisions.md) e os
+[testes](code-agent/testing.md). Os relatórios dos testes ponta a ponta ficam em [`evals/reports/`](evals/reports/).
 
 ## Ideia e arquitetura
 
 ![Arquitetura do agente da Doris](docs/architecture.png)
 
-**O LLM decide a intenção e escolhe entre candidatos; o código garante as regras.** O modelo nunca chama as tools
-do proxy diretamente. Ele vê 7 tools de alto nível, e cada uma é um pipeline determinístico em Elixir:
+A ideia central é simples: **o modelo decide o que fazer, o código garante que seja feito do jeito certo.**
 
-| Tool do modelo | O que o código faz |
+O LLM não chama as tools do proxy diretamente. Ele enxerga sete tools de mais alto nível, e cada uma é um
+pequeno pipeline em Elixir:
+
+| Tool que o modelo vê | O que acontece por trás |
 | --- | --- |
-| `find_products` | `search_by_text` → filtro rígido de preço e cores evitadas → resumo com a descrição marcada como não confiável |
-| `recommend_outfit` | uma busca por peça (camisa, calça, sapato…) → candidatos agrupados |
-| `show_products` | confere a allowlist, o teto e as cores → `show_artifact(PRODUCT)` |
-| `try_on` | `garment_creation` → `tryon` (sempre 1 peça) → `show_artifact(TRYON_CARD)`; se falhar, mostra o card do produto |
-| `get_looks` / `show_look` | `looks` + imagens anexadas ao modelo de visão → `show_artifact(TRYON_CARD)` |
-| `get_wardrobe` | `wardrobe` |
+| `find_products` | busca no catálogo e filtra por preço e cores que a pessoa evita |
+| `recommend_outfit` | uma busca por peça (camisa, calça, sapato…) para montar o look |
+| `show_products` | mostra os cards, conferindo de novo preço, cor e se o ID é conhecido |
+| `try_on` | cria a peça, gera o try-on (sempre uma peça) e mostra; se falhar, mostra o card do produto |
+| `get_looks` / `show_look` | busca os looks da pessoa, manda as imagens para o modelo avaliar e mostra o escolhido |
+| `get_wardrobe` | lista o guarda-roupa |
 
-```
-proxy ──POST /v1/chat/completions──▶ ChatController (SSE, try/after → 1 evento final + [DONE])
-                                       │ History.open (dono da conversa) · Memory.load
-                                       │ Task: Memory.update (em paralelo, aguardada antes do [DONE])
-                                       ▼
-                         Agent.Runner (≤ 6 iterações, deadline 80 s)
-                         LLM ⇄ Agent.Tools → Orchestrators → Tools.Executor ──▶ proxy /tools/*
-                                       │                        (valida args, retry só se retryable)
-                                       ▼
-                         History.save_turn (transação: mensagens + tool_executions)
-Postgres (pgvector/pg17): users · conversations · messages · tool_executions · user_preferences · semantic_memories
-```
+Assim, o que não pode dar errado não depende do prompt: a ordem garment → try-on, uma peça por vez, o try-on
+sempre aparecer para a pessoa, o teto de preço e as cores proibidas.
 
-- **Allowlist de IDs:** produtos, peças, try-ons e looks só podem ser usados se vieram de uma resposta do proxy na
-  mesma conversa. A allowlist é reconstruída de `tool_executions` a cada turno. Um ID inventado volta como erro
-  para o modelo, sem chamar o proxy.
-- **Histórico:** o agente guarda a conversa, já que o proxy só envia a mensagem atual. A janela de contexto sempre
-  começa numa mensagem `user`, então nunca separa uma `tool_call` do seu resultado. Imagens em base64 viram
-  placeholder no banco.
-- **Memória v1** (`MEMORY_MODE=v1`): `user_preferences` com tamanho, cores evitadas, estilos, orçamento e
-  notas. O LLM só propõe um *change set* em JSON; validação, merge e lock otimista ficam no código. As cores
-  evitadas viram filtro rígido.
-- **Memória v2** (`MEMORY_MODE=v2`, padrão): v1 mais fatos livres com embeddings (`text-embedding-3-small` via
-  OpenRouter, 1536 dims, pgvector), top-3 do mesmo usuário por similaridade. As restrições continuam vindo da v1.
+Mais três peças que seguram o resto:
+
+- **Só IDs reais.** Produtos, peças, try-ons e looks só podem ser usados se vieram de uma resposta do proxy na
+  mesma conversa. Se o modelo inventar um ID, ele recebe um erro e o proxy nem é chamado.
+- **Histórico no Postgres.** O proxy manda só a mensagem atual, então o agente guarda a conversa. Ela é gravada
+  durante o turno, não só no fim: se algo quebrar no meio, a mensagem, as tools e os IDs já estão salvos.
+- **Memória em duas camadas.** A v1 guarda um perfil estruturado (tamanho, cores que a pessoa evita, estilo,
+  orçamento). A v2, que é o padrão, soma a isso fatos livres com embeddings ("gosta de festas", "vai de bicicleta
+  para o trabalho"). As restrições duras, como cor proibida, sempre vêm da v1: não confio num top-k para isso.
 
 ## Decisões e trade-offs
 
-- **Elixir/Phoenix sem framework de agente.** O loop é uma função recursiva de ~100 linhas, e o estado do turno é
-  uma struct. Não usei GenServer, Oban nem macros. Em troca, perde-se o ecossistema LangGraph (checkpoints,
-  tracing prontos).
-- **Tools de alto nível em vez de expor as 7 tools cruas.** Menos liberdade para o modelo e menos tokens por
-  turno. O que não pode falhar (ordem garment→tryon, 1 peça, mostrar o try-on, teto de preço) fica fora do
-  prompt.
-- **LLM não-streaming, SSE para o proxy.** O texto chega inteiro no fim, não token a token, mas o loop de tools
-  fica simples. Os feedbacks `doris` cobrem a espera.
-- **Extração de memória síncrona ao turno, em paralelo ao loop.** Uma conversa nova sempre vê o que foi dito, sem
-  race silenciosa, e a latência extra é quase nula. O custo é uma chamada de LLM a mais por turno.
-- **Modelos:** `openai/gpt-6-luna` no agente, com fallback `google/gemini-3.8-flash` só em erro 5xx, 429 ou de
-  transporte. **Desvio do plano:** a memória usa `gpt-6-luna`, porque o gemini truncou o JSON em ~50% das
-  extrações medidas. Os dois são configuráveis por env. `max_tokens` é sempre explícito, porque sem ele a
-  OpenRouter reserva o máximo do modelo e o limite de crédito da chave devolve 402.
-- **Recuperação de falhas** (T11–T14):
-  - O turno é gravado enquanto roda: mensagem do usuário no início, cada tool na hora e cada par assistant+tools atômico. Um crash não perde IDs nem histórico.
-  - Cada chamada ao LLM tem até 20 s, limitada pelo tempo restante do turno, o que deixa espaço para o fallback.
-  - A extração de memória roda em `Task.Supervisor` com 3 tentativas. Se demorar, continua em background; não sobrevive a restart.
-  - `tryon` e `show_artifact` não são repetidos quando o efeito é incerto.
-- **Filtro de cor por palavras e tons** (amarelo → mostarda/ocre…), porque a busca não devolve tags. É simples e
-  previsível, mas é uma lista fixa.
-- **E2E em Elixir dentro do container**, falando só com `POST /chat` do proxy. A suíte de falhas usa uma segunda
-  cópia do proxy (`proxy-faults`) com os mecanismos que ele já tem (`FAULTS_FILE`, `CATALOG_OVERRIDES_FILE`),
-  sem tocar em `proxy/`.
+- **Elixir puro, sem framework de agente.** O loop é uma função recursiva curta e o estado do turno é uma struct.
+  Sem GenServer, sem Oban, sem macros. Perco as conveniências do LangGraph (checkpoints, tracing pronto), mas o
+  fluxo fica fácil de ler e de testar.
+- **O texto da resposta não é streamado token a token.** As chamadas ao LLM são normais e eu faço o SSE para o
+  proxy. O loop de tools fica bem mais simples, e as linhas de progresso ("Buscando…", "Gerando seu try-on…")
+  cobrem a espera.
+- **A memória é extraída em paralelo e esperada antes de fechar o turno.** Assim, uma conversa nova já enxerga o
+  que acabou de ser dito. Custa uma chamada de LLM a mais por turno, mas quase não aumenta a latência.
+- **Modelos.** `openai/gpt-6-luna` faz o trabalho principal, inclusive visão e extração de memória; o
+  `google/gemini-3.8-flash` só entra se o Luna falhar. Comecei com o Gemini na memória, mas ele truncava o JSON
+  em mais ou menos metade das vezes, então troquei. Tudo é configurável por variável de ambiente.
+- **Falhas.** Cada chamada ao LLM tem até 20 s, sempre dentro do limite de 80 s do turno, para sobrar tempo para o
+  fallback. A memória tenta de novo sozinha em caso de erro temporário. E try-on e cards não são repetidos quando
+  não dá para saber se a primeira chamada já surtiu efeito, para não duplicar nada na tela.
+- **Filtro de cor por palavras.** A busca não devolve tags, então uso o nome e a descrição, com uma lista de tons
+  ("amarelo" também pega "mostarda" e "ocre"). É simples e previsível, mas é uma lista fixa.
+- **Testes de falha sem mexer no proxy.** Subo uma segunda cópia do proxy com os arquivos de falha e de catálogo
+  que ele já aceita (`FAULTS_FILE`, `CATALOG_OVERRIDES_FILE`).
 
-## Resultados medidos
+## Como ficou
 
-As amostras são pequenas; servem como evidência, não como benchmark (detalhes em `code-agent/testing.md`).
+Rodei tudo contra o proxy de verdade, com o modelo de verdade. São poucas amostras, então os tempos são uma
+referência, não um benchmark.
 
-| Suíte | Resultado | p50 / p95 por turno |
-| --- | --- | --- |
-| 6 cenários do README (2 rodadas) | 6/6 e 6/6 | 5,8 s / 32,0 s (última) |
-| Falhas: retryable, erro permanente, busca vazia, preço alterado, prompt injection, deadline | 6/6 (1ª rodada 5/6 por asserção errada no teste) | 21,3 s / 66,9 s |
-| Memória v1 × v2 (cenário 4, fato indireto, fatos acumulados) | v1 2/3 · v2 3/3 | — |
-| Testes unitários/integração (`mix test`) | 45 testes, 0 falhas | — |
+| O que | Resultado |
+| --- | --- |
+| Os 6 cenários do desafio | 6/6 em todas as rodadas (p50 ~7 s, p95 ~27 s por turno) |
+| Falhas: erro temporário, erro permanente, busca vazia, preço alterado, prompt injection, tool lenta, try-on instável | 7/7 |
+| Memória v1 × v2 (preferências, fato indireto, fatos acumulados) | v1 2/3 · v2 3/3 |
+| Testes automatizados (`mix test`) | 64 testes passando |
 
-ID alucinado, argumento inválido, loop sem progresso e deadline vencido estão cobertos só por testes com LLM
-roteirizado; não dá para forçá-los de forma determinística com o modelo real.
+Alguns casos, como ID inventado, argumento inválido e loop sem progresso, não dá para provocar de forma
+confiável com o modelo real. Esses ficaram cobertos por testes com respostas do modelo simuladas.
 
 ## O que ficou de fora e por quê
 
-- **Streaming token a token do LLM:** priorizei um loop de tools correto. Os feedbacks dão sinal de progresso.
-- **Try-on de várias peças:** o proxy não suporta, então o agente veste só a peça principal e mostra as demais
-  como cards.
-- **`garment_creation` a partir de foto enviada:** o proxy não suporta. A imagem anexada vai para o modelo de
-  visão, só para opinar.
-- **Avaliação automática da "coerência" do look:** o E2E checa tools, cards, preço e cores, mas não o gosto.
-- **Memória v2:** sem deduplicação semântica, sem expiração e sem índice vetorial (poucas linhas por usuário).
-- **Banco indisponível:** o turno falha com erro. Degradar sem persistência foi adiado, por risco de
-  consistência no histórico e na allowlist.
-- **Observabilidade** (tracing/métricas por turno): por enquanto só logs e `tool_executions`.
+- **Streaming token a token:** preferi acertar o loop de tools primeiro.
+- **Try-on com várias peças ao mesmo tempo:** o proxy não suporta. A Doris prova a peça principal e mostra o
+  resto como cards.
+- **Criar peça a partir de foto enviada:** o proxy também não suporta. A foto vai para o modelo só para ele
+  opinar.
+- **Avaliar se o look "faz sentido":** os testes conferem tools, cards, preço e cor, mas não gosto.
+- **Banco fora do ar:** hoje o turno falha com erro. Responder sem histórico e sem memória tinha risco de deixar
+  o estado inconsistente, então deixei para depois.
+- **Memória v2 mais esperta:** falta juntar fatos parecidos e expirar os antigos.
+- **Métricas e tracing:** por enquanto são só logs estruturados e a tabela de execuções de tools.
 
 ## Próximos passos
 
-1. Streaming do texto final, emitindo os deltas da última chamada ao LLM.
-2. Juntar extração de memória e resposta numa chamada só, ou pular a extração quando a mensagem não tem
-   informação pessoal, para economizar uma chamada por turno.
-3. Na v1, trocar `notes` única por lista de fatos, ou ativar a v2 por padrão depois de mais medição.
-4. Avaliação com LLM-juiz para a coerência dos looks e mais variações dos cenários.
-5. Reranking e uso do guarda-roupa nas recomendações ("combina com sua calça jeans").
-6. Telemetria por turno: latência por tool, tokens e custo.
+1. Streamar o texto da resposta final.
+2. Economizar a chamada extra de memória quando a mensagem claramente não fala da pessoa.
+3. Usar o guarda-roupa nas sugestões ("combina com sua calça jeans").
+4. Um LLM-juiz para avaliar a coerência dos looks, com mais variações dos cenários.
+5. Telemetria por turno: latência por tool, tokens e custo.
 
 ## Como usei IA
 
-> Seção a revisar pelo João com a experiência dele. Abaixo, os fatos registrados no `log.md`.
+Usei o Claude Code do começo ao fim, guiado por um plano de tarefas que escrevi antes (T01 a T14). A regra era:
+nenhuma tarefa fechava sem teste rodando no Docker e evidência real anotada no log.
 
-O código, os testes e os documentos foram escritos com o Claude Code (Claude Opus 5.5), seguindo o plano de
-tarefas T01–T10 que eu escrevi. Cada tarefa só foi fechada com teste executado em Docker e evidência real.
+Ajudou muito no esqueleto do Phoenix e do Docker, nos orquestradores, nos testes com stubs e no runner de testes
+ponta a ponta. Também foi útil para investigar problemas medindo em vez de chutar: foi assim que descobri que o
+Gemini truncava o JSON da memória.
 
-- **Onde ajudou:** scaffolding do Phoenix e do Docker, orquestradores e testes com stubs (`Req.Test`), runner
-  E2E e relatórios, e investigação de falhas com medição (taxa de JSON inválido por modelo, dimensão real dos
-  embeddings).
-- **Onde errou ou precisou de correção** (todos no `log.md`):
-  - `String.to_existing_atom` no despacho de tools quebrava os testes.
-  - O `prod.exs` gerado forçava SSL.
-  - A imagem de runtime era incompatível (glibc).
-  - As respostas vinham em markdown, que o frontend não renderiza.
-  - Na primeira execução do cenário 4, a memória não salvou e a resposta "acertou" por coincidência. Só uma
-    checagem do banco revelou isso.
-  - Uma asserção do E2E estava errada (f3).
-  - Os fatos da v2 supunham gênero ("Ela…").
+Também errou, e precisei pegar:
+
+- um despacho de tools que funcionava na release e quebrava nos testes;
+- a configuração gerada que forçava HTTPS e a imagem final com glibc incompatível;
+- respostas em markdown, que o frontend não renderiza;
+- no primeiro teste da memória, a resposta parecia certa por coincidência: só olhando o banco vi que nada tinha
+  sido salvo;
+- fatos da memória que supunham o gênero da pessoa ("Ela gosta de…");
+- uma asserção errada no teste de busca vazia.
 
 ## Início e fim
 
-- Início: 2026-11-15 20:31:12 -03:00 (início oficial registrado no `log.md`)
-- Fim: 2026-11-15 21:25:47 -03:00
+- Início: 2026-11-15 20:31:12 -03:00
+- Fim: 2026-11-15 23:30:54 -03:00 (o núcleo, T01 a T10, ficou pronto às 21:25; depois vieram a recuperação de
+  falhas e os ajustes)
 
 ## Como rodar
 
-Só é preciso Docker com Compose e Git.
+Só precisa de Docker com Compose e Git.
 
 ```bash
-cp .env.example .env                 # OPENROUTER_API_KEY=...
-docker compose up --build            # frontend+proxy (:3000), agente, Postgres
-# abra http://localhost:3000
+cp .env.example .env         # coloque sua OPENROUTER_API_KEY
+docker compose up --build    # frontend + proxy (:3000), agente e Postgres
 ```
+
+Depois é só abrir http://localhost:3000.
 
 | Para… | Comando |
 | --- | --- |
-| Testes | `docker compose --profile test run --rm agent-test` |
-| E2E (6 cenários) | `docker compose --profile test run --rm agent-test mix run --no-start evals/run.exs evals/scenarios.json` |
-| E2E de falhas | `docker compose --profile eval up --build -d proxy-faults agent-eval` e depois `… evals/run.exs evals/faults.json` |
-| Memória só v1 | `MEMORY_MODE=v1 docker compose up --build -d agent` (padrão é v2) |
+| Rodar os testes | `docker compose --profile test run --rm agent-test` |
+| Rodar os 6 cenários | `docker compose --profile test run --rm agent-test mix run --no-start evals/run.exs evals/scenarios.json` |
+| Rodar os testes de falha | `docker compose --profile eval up --build -d proxy-faults agent-eval` e depois o mesmo comando com `evals/faults.json` |
+| Usar só a memória v1 | `MEMORY_MODE=v1 docker compose up --build -d` |
 
-Variáveis opcionais: `AGENT_MODEL`, `FALLBACK_MODEL`, `MEMORY_MODEL`, `EMBEDDING_MODEL`, `LLM_MAX_TOKENS`,
-`MEMORY_MODE` (`v1`|`v2`; outro valor impede o boot).
+Outras variáveis, todas opcionais: `AGENT_MODEL`, `FALLBACK_MODEL`, `MEMORY_MODEL`, `EMBEDDING_MODEL`,
+`LLM_MAX_TOKENS`, `LLM_TIMEOUT_MS` e `DB_PORT` (porta local do Postgres, padrão 5433).
