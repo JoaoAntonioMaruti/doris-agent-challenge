@@ -95,4 +95,12 @@ defmodule Doris.Memory.SemanticTest do
 
     assert Repo.aggregate(SemanticMemory, :count) == 0
   end
+
+  test "a generic question still gets the most recent facts" do
+    stub(facts: ["A pessoa gosta de festas"])
+    {:ok, 1} = Semantic.remember("u_ana__abc", %{user_text: "x", conversation_id: "c1"})
+
+    assert {:ok, ["A pessoa gosta de festas"]} = Semantic.recall("u_ana__abc", "zzz qqq www")
+    assert {:ok, []} = Semantic.recall("u_ana__def", "zzz qqq www")
+  end
 end

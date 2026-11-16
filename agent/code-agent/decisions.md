@@ -78,3 +78,6 @@
 - `Doris.Memory.Worker`: `Task.Supervisor.async_nolink` + até 3 tentativas (backoff 0,5 s e 1,5 s) para falhas transitórias (`TransportError`, 429/5xx, JSON truncado/vazio, conflito de versão). 4xx não repete. Cada tentativa e a desistência vão para o log.
 - O controller espera até 10 s antes do `[DONE]`. Se ainda estiver retentando, a tarefa **não é morta** (`Task.ignore/1`): segue em background e loga o resultado. Nesse caso raro, uma conversa aberta logo em seguida pode não ver o dado, e um restart perde a tarefa (sem fila durável, decisão mantida).
 - Na v2 o retry envolve `Memory.update/2` inteiro; fatos repetidos não duplicam (source_key).
+
+## Ajuste v2 — recall com fatos recentes
+- Perguntas genéricas ficam longe de qualquer fato no espaço vetorial (medido: "O que você sabe sobre mim?" × "A pessoa gosta de festas." = 0,747; limite 0,65). O recall agora junta os top-3 semelhantes com os 2 fatos mais recentes do usuário (sem duplicar, máx. 5).

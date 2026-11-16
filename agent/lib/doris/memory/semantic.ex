@@ -14,6 +14,9 @@ defmodule Doris.Memory.Semantic do
   alias Doris.Memory.{SemanticMemory, Structured}
 
   @top_k 3
+  # generic questions ("o que você sabe sobre mim?") are far from every fact in vector
+  # space, so the most recent facts are always included as well
+  @recent 2
   @max_distance 0.65
   @max_facts 3
   @fact_chars 200
@@ -48,29 +51,46 @@ defmodule Doris.Memory.Semantic do
     end
   end
 
-  @doc "Returns the facts most similar to the query, only from this user."
+  @doc """
+  Facts for this user only: the most similar to the query (distance ≤ #{@max_distance}) plus
+  the #{@recent} most recent ones, without duplicates.
+  """
   def recall(user_id, query_text) do
+    with {:ok, similar} <- similar(user_id, query_text) do
+      {:ok, Enum.uniq(similar ++ recent(user_id))}
+    end
+  rescue
+    error in [DBConnection.ConnectionError, Postgrex.Error] -> {:error, error}
+  end
+
+  defp similar(user_id, query_text) do
     if String.trim(query_text || "") == "" do
       {:ok, []}
     else
       with {:ok, [vector]} <- Embeddings.embed([query_text]) do
         vector = Pgvector.new(vector)
 
-        facts =
-          from(m in SemanticMemory,
-            where:
-              m.user_id == ^user_id and cosine_distance(m.embedding, ^vector) <= ^@max_distance,
-            order_by: cosine_distance(m.embedding, ^vector),
-            limit: @top_k,
-            select: m.content
-          )
-          |> Repo.all()
-
-        {:ok, facts}
+        {:ok,
+         from(m in SemanticMemory,
+           where:
+             m.user_id == ^user_id and cosine_distance(m.embedding, ^vector) <= ^@max_distance,
+           order_by: cosine_distance(m.embedding, ^vector),
+           limit: @top_k,
+           select: m.content
+         )
+         |> Repo.all()}
       end
     end
-  rescue
-    error in [DBConnection.ConnectionError, Postgrex.Error] -> {:error, error}
+  end
+
+  defp recent(user_id) do
+    from(m in SemanticMemory,
+      where: m.user_id == ^user_id,
+      order_by: [desc: m.inserted_at],
+      limit: @recent,
+      select: m.content
+    )
+    |> Repo.all()
   end
 
   @doc "Runs the v1 update and the fact extraction concurrently; returns the v1 result."

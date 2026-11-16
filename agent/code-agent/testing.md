@@ -80,3 +80,7 @@ docker compose --profile test run --rm agent-test mix run --no-start evals/run.e
 ## T13
 - `agent-test`: 58 tests, 0 failures. `WorkerTest`: `[:timeout, :timeout, ok]` → 3 chamadas, M/amarelo salvos; HTTP 400 → 1 chamada; JSON truncado → 2ª tentativa salva; 3 timeouts → `{:error, timeout}` e perfil anterior (P, v1) intacto; `await` com 10 ms devolve `:pending` e a tarefa termina depois.
 - Real (MEMORY_MODE=v2): "eu gosto de festas" → `semantic_memories`: "A pessoa gosta de festas."; logs `memory update done mode=v2 … result=unchanged` (v1 sem campo para isso).
+
+## Ajuste v2 — recall
+- `agent-test`: 59 tests, 0 failures (consulta sem semelhança devolve o fato recente do próprio usuário e nada para outro sufixo).
+- Real: conversa nova "O que você sabe sobre mim?" → `memory recall … facts=1` → "Sei que você se chama Carla, mora em Belo Horizonte e gosta de festas."
