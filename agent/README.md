@@ -52,8 +52,8 @@ Mais três peças que seguram o resto:
 - **Modelos.** `openai/gpt-6-luna` faz o trabalho principal, inclusive visão e extração de memória; o
   `google/gemini-3.8-flash` só entra se o Luna falhar. Comecei com o Gemini na memória, mas ele truncava o JSON
   em mais ou menos metade das vezes, então troquei. Tudo é configurável por variável de ambiente.
-- **Falhas.** Cada chamada ao LLM tem até 20 s, sempre dentro do limite de 80 s do turno, para sobrar tempo para o
-  fallback. A memória tenta de novo sozinha em caso de erro temporário. E try-on e cards não são repetidos quando
+- **Falhas.** Cada chamada ao LLM tem até 20 s e cada chamada de tool até 30 s, sempre dentro do que sobra dos
+  80 s do turno (perto do fim, o timeout encolhe ou a chamada nem é feita), para sobrar tempo para o fallback. A memória tenta de novo sozinha em caso de erro temporário. E try-on e cards não são repetidos quando
   não dá para saber se a primeira chamada já surtiu efeito, para não duplicar nada na tela.
 - **Filtro de cor por palavras.** A busca não devolve tags, então uso o nome e a descrição, com uma lista de tons
   ("amarelo" também pega "mostarda" e "ocre"). É simples e previsível, mas é uma lista fixa.
@@ -70,7 +70,7 @@ saiu no SSE (texto, cards, `[DONE]`) e a sequência de tools no log do proxy, n�
 | Os 6 cenários do desafio | 6/6 em todas as rodadas |
 | Falhas: erro temporário, erro permanente, busca vazia, preço alterado, prompt injection, tool lenta, try-on instável | 7/7 |
 | Memória v1 × v2 (preferências, fato indireto, fatos acumulados) | v1 2/3 · v2 3/3 |
-| Testes automatizados (`mix test`) | 64 testes passando |
+| Testes automatizados (`mix test`) | 69 testes passando |
 
 ![Latência de cada turno contra os limites de 80 s e 100 s](docs/latency.png)
 
@@ -107,8 +107,7 @@ confiável com o modelo real. Esses ficaram cobertos por testes com respostas do
 
 ## Próximos passos
 
-1. Limitar o timeout das tools pelo tempo que resta no turno, como já é feito com o LLM (hoje é fixo em 30 s),
-   e, depois de um try-on que estourou o tempo, conferir em `looks` se ele foi gerado para mostrá-lo.
+1. Depois de um try-on que estourou o tempo, conferir em `looks` se ele acabou sendo gerado e mostrá-lo.
 2. Streamar o texto da resposta final.
 3. Economizar a chamada extra de memória quando a mensagem claramente não fala da pessoa.
 4. Usar o guarda-roupa nas sugestões ("combina com sua calça jeans").

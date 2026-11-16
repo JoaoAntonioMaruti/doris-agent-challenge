@@ -138,4 +138,30 @@ defmodule Doris.Tools.ExecutorTest do
     assert {:ok, _} = Executor.call("c1", "search_by_text", %{"query" => "x"})
     assert :counters.get(counter, 1) == 2
   end
+
+  describe "call_timeout/2" do
+    test "30 s cap when there is plenty of time" do
+      assert Executor.call_timeout(0, 80_000) == 30_000
+    end
+
+    test "limited by the time left in the turn" do
+      assert Executor.call_timeout(70_000, 80_000) == 10_000
+    end
+
+    test "no call when less than 1 s is left" do
+      assert Executor.call_timeout(79_500, 80_000) == :no_time
+    end
+
+    test "without a deadline only the cap applies" do
+      assert Executor.call_timeout(0, nil) == 30_000
+    end
+  end
+
+  test "a call with the deadline already gone never reaches the proxy" do
+    Req.Test.stub(Executor, fn _ -> flunk("proxy must not be called") end)
+    deadline = System.monotonic_time(:millisecond) + 500
+
+    assert {:error, %{code: "no_time_left", retryable: false}} =
+             Executor.call("c1", "search_by_text", %{"query" => "x"}, deadline: deadline)
+  end
 end

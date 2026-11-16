@@ -89,3 +89,7 @@ docker compose --profile test run --rm agent-test mix run --no-start evals/run.e
 - `agent-test`: 64 tests, 0 failures. `ExecutorTest`: tryon 503 retryable → 1 chamada; tryon timeout → 1; tryon econnrefused → 2 (sucesso); show_artifact 503 → 1; search 503 → 2.
 - E2E faults (proxy-faults): 7/7, incluindo f7 (`tryon` 503 retryable em p16 → 1 chamada a tryon, feedback `error`, card PRODUCT p16).
 - E2E cenários: 6/6, p50 7,3 s, p95 27,4 s (2ª rodada, após restart do proxy; ver ocorrência).
+
+## Timeout das tools
+- `agent-test`: 69 tests, 0 failures (`Executor.call_timeout/2`: teto, limitado pelo restante, sem chamada com <1 s, sem deadline; chamada com deadline vencido não chega ao proxy).
+- f6 repetido no proxy de falhas: passou, 68,2 s, `[DONE]`. As duas tentativas de busca ainda usam 30 s cada (havia tempo de sobra quando começaram); o encolhimento vale quando a tool é chamada perto do fim do turno.

@@ -29,8 +29,33 @@ defmodule Doris.Tools.Executor do
     end
   end
 
+  @call_cap_ms 30_000
+  # below this there is no point in calling the proxy
+  @min_call_ms 1_000
+
+  @doc """
+  Timeout for one proxy call: #{@call_cap_ms} ms, limited by the time left before the turn
+  deadline. `:no_time` when less than #{@min_call_ms} ms would be left.
+  """
+  def call_timeout(now_ms, deadline_ms) do
+    timeout = if deadline_ms, do: min(@call_cap_ms, deadline_ms - now_ms), else: @call_cap_ms
+    if timeout < @min_call_ms, do: :no_time, else: timeout
+  end
+
   defp attempt(tool, body, n, max, deadline) do
-    case post(tool, body) do
+    result =
+      case call_timeout(System.monotonic_time(:millisecond), deadline) do
+        :no_time ->
+          Logger.warning("tool call tool=#{tool} skipped reason=no_time_left")
+
+          {:error,
+           %{code: "no_time_left", message: "sem tempo restante no turno", retryable: false}}
+
+        timeout ->
+          post(tool, body, timeout)
+      end
+
+    case result do
       {:error, %{retryable: true} = error} when n < max ->
         if time_left?(deadline) and safe_to_retry?(tool, error) do
           Logger.warning("tool #{tool} failed (#{error.code}), retry #{n + 1}/#{max}")
@@ -45,9 +70,9 @@ defmodule Doris.Tools.Executor do
     end
   end
 
-  defp post(tool, body) do
+  defp post(tool, body, timeout) do
     started = System.monotonic_time(:millisecond)
-    result = do_post(tool, body)
+    result = do_post(tool, body, timeout)
     ms = System.monotonic_time(:millisecond) - started
 
     case result do
@@ -63,8 +88,8 @@ defmodule Doris.Tools.Executor do
     result
   end
 
-  defp do_post(tool, body) do
-    case Req.post(req(), url: "/tools/" <> tool, json: body) do
+  defp do_post(tool, body, timeout) do
+    case Req.post(req(), url: "/tools/" <> tool, json: body, receive_timeout: timeout) do
       {:ok, %{status: status, body: %{"ok" => true} = envelope}} when status in 200..299 ->
         {:ok, Map.get(envelope, "data") || %{}}
 
@@ -105,7 +130,6 @@ defmodule Doris.Tools.Executor do
   defp req do
     Req.new(
       base_url: Application.fetch_env!(:doris, :proxy_url),
-      receive_timeout: 30_000,
       retry: false
     )
     |> Req.merge(Application.get_env(:doris, :proxy_req_options, []))

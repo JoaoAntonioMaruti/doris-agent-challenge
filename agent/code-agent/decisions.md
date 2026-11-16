@@ -85,3 +85,7 @@
 ## T14 — Retry por idempotência
 - `Registry.side_effect?/1`: `tryon` e `show_artifact` têm efeito visível. Para elas, o Executor só repete quando a requisição comprovadamente não saiu (`econnrefused`, `nxdomain`). 5xx retryable e timeout não repetem, porque o efeito é incerto; o orquestrador cai no card do produto. Ferramentas idempotentes (busca, garment_creation, looks, wardrobe, avatar) mantêm o retry de antes.
 - `:closed` ficou fora da lista (o plano citava), por não dar para saber se a requisição já tinha sido enviada.
+
+## Timeout das tools pelo tempo restante
+- O f6 mostrou que o timeout das tools era fixo em 30 s. Agora cada chamada usa `min(30 s, tempo até o deadline)` e não chama o proxy com menos de 1 s (`no_time_left`, não repetível), no mesmo padrão da T12 para o LLM.
+- Limitação mantida: quando o agente desiste, o proxy continua processando; um try-on que estoura o tempo pode ser gerado e não ser mostrado.
