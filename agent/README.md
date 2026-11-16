@@ -62,20 +62,30 @@ Mais três peças que seguram o resto:
 
 ## Como ficou
 
-Rodei tudo contra o proxy de verdade, com o modelo de verdade. São poucas amostras, então os tempos são uma
-referência, não um benchmark.
+Rodei tudo contra o proxy de verdade, com o modelo de verdade. "Passou" quer dizer que o runner conferiu o que
+saiu no SSE (texto, cards, `[DONE]`) e a sequência de tools no log do proxy, não só o tempo.
 
 | O que | Resultado |
 | --- | --- |
-| Os 6 cenários do desafio | 6/6 em todas as rodadas (p50 ~7 s, p95 ~27 s por turno) |
+| Os 6 cenários do desafio | 6/6 em todas as rodadas |
 | Falhas: erro temporário, erro permanente, busca vazia, preço alterado, prompt injection, tool lenta, try-on instável | 7/7 |
 | Memória v1 × v2 (preferências, fato indireto, fatos acumulados) | v1 2/3 · v2 3/3 |
 | Testes automatizados (`mix test`) | 64 testes passando |
 
 ![Latência de cada turno contra os limites de 80 s e 100 s](docs/latency.png)
 
-Todo turno fica longe do corte de 100 s do proxy. O único que chega perto é o f6, de propósito: ali a busca foi
-atrasada em 85 s, e a Doris desiste dentro do próprio limite de 80 s e responde mesmo assim.
+*Latência de ponta a ponta de cada turno, medida pelo runner E2E: inclui as chamadas ao modelo, as tools e o
+fechamento do SSE. Uma execução por caso (a última rodada), em Docker. São 18 turnos de complexidade bem
+diferente, então isso mostra que tudo cabe nos limites, não serve como benchmark nem para tirar percentis.*
+
+O único turno que chega perto do limite é o f6, de propósito: a busca foi atrasada em 85 s. Pelos logs, o
+agente desistiu de cada tentativa aos 30 s, tentou a busca uma segunda vez (ela não tem efeito colateral),
+bloqueou uma terceira chamada igual que o modelo pediu e respondeu "não consegui consultar o catálogo agora",
+fechando o turno com `[DONE]` aos 67,9 s.
+
+Um detalhe que esse teste revelou: quem desiste é o agente. O proxy continua processando a chamada lenta e só
+termina depois (no log dele as duas buscas aparecem com status 200). Para uma busca isso é inofensivo. Para um
+try-on, significa que ele pode ficar pronto depois que o agente já desistiu, e nunca ser mostrado.
 
 Alguns casos, como ID inventado, argumento inválido e loop sem progresso, não dá para provocar de forma
 confiável com o modelo real. Esses ficaram cobertos por testes com respostas do modelo simuladas.
@@ -91,15 +101,19 @@ confiável com o modelo real. Esses ficaram cobertos por testes com respostas do
 - **Banco fora do ar:** hoje o turno falha com erro. Responder sem histórico e sem memória tinha risco de deixar
   o estado inconsistente, então deixei para depois.
 - **Memória v2 mais esperta:** falta juntar fatos parecidos e expirar os antigos.
+- **Chamadas abandonadas no proxy:** quando o agente desiste por timeout, não há como cancelar a chamada do lado
+  do proxy. Um try-on que estoura o tempo pode ser gerado mesmo assim e ficar sem ser mostrado.
 - **Métricas e tracing:** por enquanto são só logs estruturados e a tabela de execuções de tools.
 
 ## Próximos passos
 
-1. Streamar o texto da resposta final.
-2. Economizar a chamada extra de memória quando a mensagem claramente não fala da pessoa.
-3. Usar o guarda-roupa nas sugestões ("combina com sua calça jeans").
-4. Um LLM-juiz para avaliar a coerência dos looks, com mais variações dos cenários.
-5. Telemetria por turno: latência por tool, tokens e custo.
+1. Limitar o timeout das tools pelo tempo que resta no turno, como já é feito com o LLM (hoje é fixo em 30 s),
+   e, depois de um try-on que estourou o tempo, conferir em `looks` se ele foi gerado para mostrá-lo.
+2. Streamar o texto da resposta final.
+3. Economizar a chamada extra de memória quando a mensagem claramente não fala da pessoa.
+4. Usar o guarda-roupa nas sugestões ("combina com sua calça jeans").
+5. Um LLM-juiz para avaliar a coerência dos looks, com mais variações dos cenários.
+6. Telemetria por turno: latência por tool, tokens e custo.
 
 ## Como usei IA
 
