@@ -5,7 +5,8 @@ try-on e lembra das preferências de cada pessoa entre conversas.
 
 Se quiser os detalhes de cada passo, deixei tudo em `code-agent/`: o [plano](code-agent/plan.md), o
 [log com horários e commits](code-agent/log.md), as [decisões](code-agent/decisions.md) e os
-[testes](code-agent/testing.md). Os relatórios dos testes ponta a ponta ficam em [`evals/reports/`](evals/reports/).
+[testes](code-agent/testing.md). Os relatórios dos testes ponta a ponta ficam em [`evals/reports/`](evals/reports/), e o gráfico sai de
+`evals/charts.py`.
 
 ## Ideia e arquitetura
 
@@ -70,6 +71,11 @@ referência, não um benchmark.
 | Falhas: erro temporário, erro permanente, busca vazia, preço alterado, prompt injection, tool lenta, try-on instável | 7/7 |
 | Memória v1 × v2 (preferências, fato indireto, fatos acumulados) | v1 2/3 · v2 3/3 |
 | Testes automatizados (`mix test`) | 64 testes passando |
+
+![Latência de cada turno contra os limites de 80 s e 100 s](docs/latency.png)
+
+Todo turno fica longe do corte de 100 s do proxy. O único que chega perto é o f6, de propósito: ali a busca foi
+atrasada em 85 s, e a Doris desiste dentro do próprio limite de 80 s e responde mesmo assim.
 
 Alguns casos, como ID inventado, argumento inválido e loop sem progresso, não dá para provocar de forma
 confiável com o modelo real. Esses ficaram cobertos por testes com respostas do modelo simuladas.
