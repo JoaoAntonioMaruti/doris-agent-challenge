@@ -52,11 +52,10 @@ defmodule DorisWeb.ChatController do
     memory = Memory.load(req.user_id, text)
 
     # Preferences are extracted from the user's message in parallel with the agent loop
-    # and awaited before the turn ends, so a new conversation always sees them.
+    # (with automatic retry) and awaited before the turn ends, so a new conversation
+    # normally sees them; a slow retry keeps going in the background.
     extraction =
-      Task.Supervisor.async_nolink(Doris.TaskSupervisor, fn ->
-        Memory.update(req.user_id, %{user_text: text, conversation_id: req.conversation_id})
-      end)
+      Memory.Worker.start(req.user_id, %{user_text: text, conversation_id: req.conversation_id})
 
     # read the context first, then store the user message: everything after this point is
     # persisted as it happens, so a crash mid-turn keeps the message, tool calls and ids.
@@ -73,7 +72,7 @@ defmodule DorisWeb.ChatController do
       |> Map.merge(persistence(req.conversation_id))
 
     result = Runner.run(req, emit, state: state, history: history, memory: memory.prompt)
-    await_memory(extraction, req.user_id)
+    Memory.Worker.await(extraction, req.user_id)
 
     case result do
       {:ok, _turn} -> :ok
@@ -90,23 +89,6 @@ defmodule DorisWeb.ChatController do
         {:ok, :ok} = History.append_messages(conversation_id, messages)
       end
     }
-  end
-
-  # A memory failure never breaks the chat; it is logged and the previous profile stays.
-  defp await_memory(task, user_id) do
-    case Task.yield(task, 15_000) || Task.shutdown(task) do
-      {:ok, {:error, reason}} ->
-        Logger.warning("memory update failed for #{user_id}: #{inspect(reason)}")
-
-      {:ok, _} ->
-        :ok
-
-      nil ->
-        Logger.warning("memory update timed out for #{user_id}")
-
-      {:exit, reason} ->
-        Logger.warning("memory update crashed for #{user_id}: #{inspect(reason)}")
-    end
   end
 
   defp write_event(event) do

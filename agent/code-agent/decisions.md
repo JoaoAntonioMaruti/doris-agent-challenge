@@ -73,3 +73,8 @@
 - Cada tentativa de modelo recebe `min(LLM_TIMEOUT_MS (20 s), tempo até o deadline)`. Antes eram 45 s fixos, e uma chamada lenta consumia o orçamento de 80 s sem dar chance ao fallback.
 - O Runner passa o `deadline` (monotônico), não um timeout. O fallback recalcula com o tempo restante e não é tentado com menos de 3 s (`{:error, :no_time_left}`): o turno fecha com texto de fallback ou com evento de erro se nada respondeu.
 - A extração de memória usa o mesmo teto de 20 s por tentativa (sem deadline de turno).
+
+## T13 — Memória com retry automático
+- `Doris.Memory.Worker`: `Task.Supervisor.async_nolink` + até 3 tentativas (backoff 0,5 s e 1,5 s) para falhas transitórias (`TransportError`, 429/5xx, JSON truncado/vazio, conflito de versão). 4xx não repete. Cada tentativa e a desistência vão para o log.
+- O controller espera até 10 s antes do `[DONE]`. Se ainda estiver retentando, a tarefa **não é morta** (`Task.ignore/1`): segue em background e loga o resultado. Nesse caso raro, uma conversa aberta logo em seguida pode não ver o dado, e um restart perde a tarefa (sem fila durável, decisão mantida).
+- Na v2 o retry envolve `Memory.update/2` inteiro; fatos repetidos não duplicam (source_key).

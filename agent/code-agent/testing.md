@@ -76,3 +76,7 @@ docker compose --profile test run --rm agent-test mix run --no-start evals/run.e
 ## T12
 - `agent-test`: 53 tests, 0 failures. `OpenRouterTest`: `call_timeout/3` (teto, limitado pelo restante, `:no_time` abaixo de 3 s, sem deadline); `Req.Test.transport_error(:timeout)` no gpt-6-luna → chamada ao gemini-3.8-flash responde; deadline em 1 s → nenhuma chamada.
 - Real: logs `llm request … timeout_ms=20000` para `agent`, `memory.preferences` e `memory.facts`.
+
+## T13
+- `agent-test`: 58 tests, 0 failures. `WorkerTest`: `[:timeout, :timeout, ok]` → 3 chamadas, M/amarelo salvos; HTTP 400 → 1 chamada; JSON truncado → 2ª tentativa salva; 3 timeouts → `{:error, timeout}` e perfil anterior (P, v1) intacto; `await` com 10 ms devolve `:pending` e a tarefa termina depois.
+- Real (MEMORY_MODE=v2): "eu gosto de festas" → `semantic_memories`: "A pessoa gosta de festas."; logs `memory update done mode=v2 … result=unchanged` (v1 sem campo para isso).
